@@ -2141,7 +2141,7 @@ if st.session_state.started:
         text-align: right;
       }
       </style>
-      <div class="cv"><hr><a href="https://github.com/jayplus4/My-portfolio-and-cv/blob/4406bc180879ace46e6fbd34631a3d13200cc220/Mustapha_Muhammed_upd_Cv%5B1%5D.pdf">Detailed Curriculum Vitae (CV)</a></div><hr>
+      <div class="cv"><hr><a href="https://drive.google.com/file/d/19Yxkhqa5amJadMIIypZ2sNRO_KB8W7L3/view?usp=sharing">Detailed Curriculum Vitae (CV)</a></div><hr>
 
     """
 
