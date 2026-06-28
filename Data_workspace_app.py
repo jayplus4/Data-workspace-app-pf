@@ -2067,7 +2067,7 @@ if st.session_state.started:
       '\n---')
       
       st.markdown(
-        '<div style="text-align: justify;">Successfully completed the one-year <b>National Youth Service Corps (NYSC)</b> programme in <b>Bauchi State</b> in year 2022 to 2023, demonstrating exceptional commitment to national service, community development, and professional excellence. Throughout the service year, actively participated in all mandatory phases of the NYSC scheme, including the orientation course, primary assignment, community development service (CDS), and passing-out activities. The NYSC programme is designed to promote national unity, leadership development, self-reliance, and community engagement among Nigerian graduates.<br><a href="https://github.com/jayplus4/My-portfolio-and-cv/blob/8b4c36b549beab2c821712f939da04d73a78f675/Detailed%20Portfolio.pdf">Read more</a></div>', unsafe_allow_html=True
+        '<div style="text-align: justify;">Successfully completed the one-year <b>National Youth Service Corps (NYSC)</b> programme in <b>Bauchi State</b> in year 2022 to 2023, demonstrating exceptional commitment to national service, community development, and professional excellence. Throughout the service year, actively participated in all mandatory phases of the NYSC scheme, including the orientation course, primary assignment, community development service (CDS), and passing-out activities. The NYSC programme is designed to promote national unity, leadership development, self-reliance, and community engagement among Nigerian graduates.<br><a href="https://docs.google.com/document/d/1R5exzsLSe2SGs_Jwp7uCNF8T5_hhkTLwHuJkuKV5X0A/edit?usp=sharing">Read more</a></div>', unsafe_allow_html=True
       )
 
     st.markdown('<hr>', unsafe_allow_html=True)
@@ -2083,7 +2083,7 @@ if st.session_state.started:
       st.markdown(
         '<div style="text-align: justify;">I participated in successfully planned, coordinated, and conducted supportive supervision activities in 20 LGA of</div>', unsafe_allow_html=True
       )
-    st.markdown('<div style="text-align: justify;">Bauchi State in 2024 in the course of working with Pro-health International, ensuring effective implementation of program activities and adherence to established operational standards. Demonstrated strong leadership, technical expertise, and problem-solving skills while providing guidance and mentorship to field personnel, fostering improved performance, accountability, and service delivery.<br><a href="https://github.com/jayplus4/My-portfolio-and-cv/blob/8b4c36b549beab2c821712f939da04d73a78f675/Detailed%20Portfolio.pdf">Read more</a></div><hr>', unsafe_allow_html=True)
+    st.markdown('<div style="text-align: justify;">Bauchi State in 2024 in the course of working with Pro-health International, ensuring effective implementation of program activities and adherence to established operational standards. Demonstrated strong leadership, technical expertise, and problem-solving skills while providing guidance and mentorship to field personnel, fostering improved performance, accountability, and service delivery.<br><a href="https://docs.google.com/document/d/1R5exzsLSe2SGs_Jwp7uCNF8T5_hhkTLwHuJkuKV5X0A/edit?usp=sharing">Read more</a></div><hr>', unsafe_allow_html=True)
 
     col7,col8 = st.columns([4,6])
 
@@ -2095,7 +2095,7 @@ if st.session_state.started:
       '\n---')
       
     st.markdown(
-      '<div style="text-align: justify;">I joined the Strategic Information Team of Pro-health International to conduct comprehensive <b>Data Quality Assessment (DQA)</b>in year 2023, activities to evaluate the accuracy, completeness, consistency, timeliness, and reliability of programme data. Demonstrated strong analytical, monitoring, and evaluation skills in assessing data management systems and ensuring that reported information met established quality standards and reporting requirements.<br><a href="https://github.com/jayplus4/My-portfolio-and-cv/blob/8b4c36b549beab2c821712f939da04d73a78f675/Detailed%20Portfolio.pdf">Read more</a></div><hr>', unsafe_allow_html=True
+      '<div style="text-align: justify;">I joined the Strategic Information Team of Pro-health International to conduct comprehensive <b>Data Quality Assessment (DQA)</b> in year 2023, activities to evaluate the accuracy, completeness, consistency, timeliness, and reliability of programme data. Demonstrated strong analytical, monitoring, and evaluation skills in assessing data management systems and ensuring that reported information met established quality standards and reporting requirements.<br><a href="https://docs.google.com/document/d/1R5exzsLSe2SGs_Jwp7uCNF8T5_hhkTLwHuJkuKV5X0A/edit?usp=sharing">Read more</a></div><hr>', unsafe_allow_html=True
     )
 
     col9,col10 = st.columns([4,6])
@@ -2108,7 +2108,7 @@ if st.session_state.started:
       '\n---')
       
     st.markdown(
-      '<div style="text-align: justify;">I successfully designed, facilitated, and completed a comprehensive <b>Training of Trainers (ToT) on the integration of the Sierra Leone Logistics Management Information System (LMIS) and District Health Information Software 2 (DHIS2) which is called MSUPP</b> ending of year 2025, aimed at strengthening health information management, supply chain visibility, and data-driven decision-making across the health sector, District and National level.<br><a href="https://github.com/jayplus4/My-portfolio-and-cv/blob/8b4c36b549beab2c821712f939da04d73a78f675/Detailed%20Portfolio.pdf">Read more</a></div><hr>', unsafe_allow_html=True
+      '<div style="text-align: justify;">I successfully designed, facilitated, and completed a comprehensive <b>Training of Trainers (ToT) on the integration of the Sierra Leone Logistics Management Information System (LMIS) and District Health Information Software 2 (DHIS2) which is called MSUPP</b> ending of year 2025, aimed at strengthening health information management, supply chain visibility, and data-driven decision-making across the health sector, District and National level.<br><a href="https://docs.google.com/document/d/1R5exzsLSe2SGs_Jwp7uCNF8T5_hhkTLwHuJkuKV5X0A/edit?usp=sharing">Read more</a></div><hr>', unsafe_allow_html=True
     )
 
     col11,col12 = st.columns([3,7])
@@ -2120,7 +2120,7 @@ if st.session_state.started:
       '\n---')
       
     st.markdown(
-      '<div style="text-align: justify;">Successfully led the design, development, configuration, and implementation of a <b>DHIS2-based disease surveillance and monitoring system,</b> to strengthen the tracking, reporting, and management of priority public health diseases, including <b>Meningitis</b> and <b>Mpox (Monkeypox)</b>. The initiative enhanced the capacity of health authorities and implementing partners to monitor disease trends, improve data quality, and support timely public health decision-making.<br><a href="https://github.com/jayplus4/My-portfolio-and-cv/blob/8b4c36b549beab2c821712f939da04d73a78f675/Detailed%20Portfolio.pdf">Read more</a></div><hr>', unsafe_allow_html=True
+      '<div style="text-align: justify;">Successfully led the design, development, configuration, and implementation of a <b>DHIS2-based disease surveillance and monitoring system,</b> to strengthen the tracking, reporting, and management of priority public health diseases, including <b>Meningitis</b> and <b>Mpox (Monkeypox)</b>. The initiative enhanced the capacity of health authorities and implementing partners to monitor disease trends, improve data quality, and support timely public health decision-making.<br><a href="https://docs.google.com/document/d/1R5exzsLSe2SGs_Jwp7uCNF8T5_hhkTLwHuJkuKV5X0A/edit?usp=sharing">Read more</a></div><hr>', unsafe_allow_html=True
     )
 
     col13,col14 = st.columns([3,7])
