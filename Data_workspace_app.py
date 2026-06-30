@@ -67,14 +67,16 @@ welcome = st.markdown('<h2><marquee direction="left" class="welcome" style="back
 '<p class="welcome" style="text-align: justify;">This app is built for professionals who work with data every day and need results without friction. Whether your data comes messy, incomplete, or in different formats, this platform helps you clean, analyse, visualise, and convert files seamlessly.</p>'
 '<p class="welcome" style="text-align: justify;">From raw data to meaningful stories, this app supports every step of your data journey. Click the <a href="https://selar.com/n461o6yn1l", class="welcome">Link</a> to learn more about Data Analysis.</p>'\
 '<p style="text-align: justify;"><strong class="welcome">Upload your data and start transforming information into impact.</strong></p> ', unsafe_allow_html=True) 
-image_placeholder = st.empty()
-image_placeholder.image("book.jpg", caption="The Book that teaches you Data Analysis (Click the Link Above)")
+
 
 # start button
 if "started" not in st.session_state:
   st.session_state.started = False
 if st.button("GET STARTED", key= 'btn'):
   st.session_state.started = True
+
+image_placeholder = st.empty()
+image_placeholder.image("book.jpg", caption="The Book that teaches you Data Analysis (Click the Link Above)")
 if st.session_state.started:
   # Hide menu 
   st.markdown(hide, unsafe_allow_html=True)
@@ -106,7 +108,7 @@ if st.session_state.started:
     column1, column2 = st.columns(2)
 
     # upload file 
-    st.sidebar.subheader("📂 Upload file to start cleaning")
+    st.sidebar.subheader("📂 Upload CSV or Excel file to start cleaning")
     upload_file = st.sidebar.file_uploader("Upload a File", type=['csv', "xlsx"])
     
     # condition to upload file 
@@ -623,7 +625,7 @@ if st.session_state.started:
     column1, column2 = st.columns(2)
 
     # upload file 
-    st.sidebar.subheader("📂 Upload File to Start Analysis")
+    st.sidebar.subheader("📂 Upload CSV or Excel File to Start Analysis")
     upload_file = st.sidebar.file_uploader("Upload a File", type=['csv', "xlsx"])
     
     # condition to upload file 
@@ -1605,7 +1607,7 @@ if st.session_state.started:
     st.markdown("<h2 class='subtitle'>Create Visuals</h2>", unsafe_allow_html=True)
 
     # upload file 
-    st.sidebar.subheader("📂 Upload File to Create Visuals")
+    st.sidebar.subheader("📂 Upload CSV or Excel File to Create Visuals")
     upload_file = st.sidebar.file_uploader("Upload a File", type=['csv', "xlsx"])
     
     # condition to upload file 
