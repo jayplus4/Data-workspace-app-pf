@@ -65,7 +65,7 @@ btn = """
 # welcome page
 welcome = st.markdown('<h2><marquee direction="left" class="welcome" style="background-color: skyblue");">Welcome To All-in-One Data Workspace and MY Official Portfolio. Turn Raw Data into Clear, Actionable Insight; Faster and Smarter. Let\'s Get Started!</marquee></h2>' \
 '<p class="welcome" style="text-align: justify;">This app is built for professionals who work with data every day and need results without friction. Whether your data comes messy, incomplete, or in different formats, this platform helps you clean, analyse, visualise, and convert files seamlessly.</p>'
-'<p class="welcome" style="text-align: justify;">From row data to meaningful stories, this app supports every step of your data journey. Click the <a href="https://selar.com/n461o6yn1l", class="welcome">Link</a> to learn more about Data Analysis.</p>'\
+'<p class="welcome" style="text-align: justify;">From raw data to meaningful stories, this app supports every step of your data journey. Click the <a href="https://selar.com/n461o6yn1l", class="welcome">Link</a> to learn more about Data Analysis.</p>'\
 '<p style="text-align: justify;"><strong class="welcome">Upload your data and start transforming information into impact.</strong></p> ', unsafe_allow_html=True) 
 image_placeholder = st.empty()
 image_placeholder.image("book.jpg", caption="The Book that teaches you Data Analysis (Click the Link Above)")
