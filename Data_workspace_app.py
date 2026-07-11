@@ -19,12 +19,25 @@ from statsmodels.tsa.arima.model import ARIMA as AM
 from statsmodels.tsa.statespace.sarimax import SARIMAX as SX
 from statsmodels.tsa.statespace.varmax import VARMAX as VX
 from statsmodels.duration.hazard_regression import PHReg
+import requests
+from bs4 import BeautifulSoup
+import json
+import xml.etree.ElementTree as ET
+import re
+import csv
+import io
+from ast import literal_eval
+from scipy.stats import levene, bartlett, fligner
+import statsmodels.api as sm
+from statsmodels.stats.outliers_influence import variance_inflation_factor
+from sklearn.impute import SimpleImputer
+
 
 
 # page config
 st.set_page_config(
   page_title="Data WorkSpace",
-  page_icon="🧾",
+  page_icon="🌐",
   layout="centered"
 )
 
@@ -84,7 +97,7 @@ if st.session_state.started:
   image_placeholder.empty()
   st.markdown("<h3 class='title'>Process Your Data: Turn Your Data into Insight</h3>", unsafe_allow_html=True)
 
-  menu = ['Choose Option', 'Data Analysis', 'Data Cleaning', 'Data Visualization', 'Convert Your Files', 'About App', 'My Portfolio']
+  menu = ['Choose Option', 'Data Analysis', 'Data Cleaning', 'Data Visualization', 'Convert Your Files', 'About App', 'My Portfolio','Get Data & Others from Web']
   # menu to select from
   select_menu = st.selectbox("Select Menu to Talk to Your Data: ", menu)
 
@@ -95,7 +108,7 @@ if st.session_state.started:
     '<div class="list">2. Data Cleaning </div>\n' \
     '<div class="list">3. Data Visualization </div>\n' \
     '<div class="list">4. About the App & Portfolio</div>\n' \
-    '<div class="list">5. Convert Your File To Excel or CSV </div>',
+    '<div class="list">5. Convert Your Files</div>',
     unsafe_allow_html=True
   )
   
@@ -544,7 +557,7 @@ if st.session_state.started:
     column1, column2 = st.columns(2)
 
     # select to file 
-    Select_file = ['Select Option','Excel To CSV', 'CSV To Excel']
+    Select_file = ['Select Option','Excel To CSV', 'CSV To Excel','JSON To CSV','XML To CSV', 'SQL TO CSV']
     select_files = st.sidebar.selectbox("Select File TO Convert:",  Select_file)
 
 
@@ -584,21 +597,21 @@ if st.session_state.started:
     elif select_files == "CSV To Excel":
       # hide subtitle
       st.markdown(subtitle, unsafe_allow_html=True)
-
+    
       # upload file 
       st.sidebar.subheader("📂 Upload CSV file to Convert")
       upload_file = st.sidebar.file_uploader("Upload a CSV File", type=['csv'])
-
+    
       if upload_file != None:
         st.sidebar.success("✅ File Uploaded Successfully!")
 
         # read file 
         df3 = pd.read_csv(upload_file)
-
+      
         # show dataset
         if st.sidebar.checkbox('Show Dataset'):
           st.write(df3)
-        
+          
         if st.sidebar.checkbox('Download to Excel'):
           def to_excel(df3):
             output = BytesIO()
@@ -613,6 +626,436 @@ if st.session_state.started:
             file_name= 'My_excel.xlsx',
             mime='application/vnd.opnxmlformats-offcedocument.spreadsheetml.sheeet'
           )
+          
+        # JSON TO CSV 
+    elif select_files == 'JSON To CSV':
+      # hide subtitle
+      st.markdown(subtitle, unsafe_allow_html=True)
+      st.subheader("📄 Convert JSON to CSV")
+      st.info("This page support conversion of Multiple JSON files to CSV. Do well to upload one or more JSON file in the sidebar by the left of your screen and see the wonder!.")
+
+      
+      # File Upload
+      uploaded_files = st.sidebar.file_uploader(
+        "Upload JSON File(s)",
+        type=["json"],
+        accept_multiple_files=True
+      )
+
+      
+      # Function to Convert JSON to DataFrame
+      def json_to_dataframe(file):
+        try:
+          data = json.load(file)
+
+          # Handle dictionary
+          if isinstance(data, dict):
+            # If dictionary contains a list
+            for key, value in data.items():
+              if isinstance(value, list):
+                return pd.json_normalize(value)
+
+            # Otherwise normalize dictionary
+            return pd.json_normalize(data)
+
+          # Handle list
+          elif isinstance(data, list):
+            return pd.json_normalize(data)
+
+          else:
+            return pd.DataFrame({"Value": [data]})
+
+        except Exception as e:
+          st.error(f"Error reading {file.name}: {e}")
+          return None
+
+
+      # Process Uploaded Files
+      if uploaded_files:
+
+        for uploaded_file in uploaded_files:
+
+          st.divider()
+          st.subheader(f"📂 {uploaded_file.name}")
+
+          df = json_to_dataframe(uploaded_file)
+
+          if df is not None:
+
+            st.success("JSON loaded successfully!")
+
+            st.write("Data Preview")
+            st.dataframe(df, use_container_width=True)
+
+            # Convert DataFrame to CSV
+            csv = df.to_csv(index=False).encode("utf-8")
+
+            st.download_button(
+              label="⬇ Download CSV",
+              data=csv,
+              file_name=uploaded_file.name.replace(".json", ".csv"),
+              mime="text/csv",
+            )
+
+            # Optional statistics
+            col1, col2 = st.columns(2)
+
+            with col1:
+              st.metric("Rows", len(df))
+
+            with col2:
+              st.metric("Columns", len(df.columns))
+
+      else:
+        st.info("Upload one or more JSON files to begin.")
+
+
+      # XML to CSV 
+    elif select_files == 'XML To CSV':
+      # hide subtitle
+      st.markdown(subtitle, unsafe_allow_html=True)
+      st.subheader("📄 Convert XML File to CSV")
+      st.info("This page support conversion of Multiple XML files to CSV. Do well to upload one or more XML file in the sidebar by the left of your screen and see the wonder!.")
+
+      uploaded_files = st.sidebar.file_uploader(
+        "Choose XML file(s)",
+        type=["xml"],
+        accept_multiple_files=True
+      )
+
+
+      def xml_to_dataframe(xml_file):
+        """
+        Convert XML to DataFrame.
+        Assumes each direct child of the root is one record.
+        """
+
+        tree = ET.parse(xml_file)
+        root = tree.getroot()
+
+        rows = []
+
+        for record in root:
+          row = {}
+
+          # Child elements
+          for child in record:
+            row[child.tag] = child.text
+
+            # Nested elements
+            if list(child):
+              for subchild in child:
+                row[f"{child.tag}_{subchild.tag}"] = subchild.text
+
+          rows.append(row)
+
+        return pd.DataFrame(rows)
+
+
+      if uploaded_files:
+
+        for uploaded_file in uploaded_files:
+
+          st.divider()
+
+          st.subheader(f"📁 {uploaded_file.name}")
+
+          try:
+
+            df = xml_to_dataframe(uploaded_file)
+
+            if df.empty:
+              st.warning("No records found.")
+              continue
+
+            st.success("XML converted successfully!")
+
+            st.dataframe(
+              df,
+              use_container_width=True
+            )
+
+            csv = df.to_csv(index=False).encode("utf-8")
+
+            csv_name = uploaded_file.name.replace(".xml", ".csv")
+
+            st.download_button(
+              label="⬇ Download CSV",
+              data=csv,
+              file_name=csv_name,
+              mime="text/csv"
+            )
+
+          except Exception as e:
+            st.error(f"Error processing file: {e}")
+
+      # SQL TO CSV 
+    elif select_files == 'SQL TO CSV':
+      # hide subtitle
+      st.markdown(subtitle, unsafe_allow_html=True)
+      st.subheader("📄 Convert SQL File to CSV")
+      st.info("This page Supports conversion of Structural Query Language Files (SQL) into CSV File. Do well to upload your SQL file in the sidebar by the left of your screen.")
+
+      uploaded_file = st.sidebar.file_uploader(
+        "Upload SQL File",
+        type=["sql", "dump", "txt"]
+      )
+
+      
+      # Utility
+      def split_values(value_string):
+        """
+        Split SQL values while respecting commas inside quotes.
+        """
+        reader = csv.reader(
+          io.StringIO(value_string),
+          delimiter=',',
+          quotechar="'",
+          escapechar='\\'
+        )
+        return next(reader)
+
+
+      def clean(value):
+        value = value.strip()
+
+        if value.upper() == "NULL":
+          return None
+
+        if value.startswith("'") and value.endswith("'"):
+          value = value[1:-1]
+
+        return value
+
+
+      # Parse CREATE TABLE
+      def parse_create_table(sql_text):
+        """
+        Extract column names from CREATE TABLE statements.
+        Supports MySQL, SQLite, PostgreSQL and SQL Server.
+        """
+
+        table_columns = {}
+
+        pattern = re.finditer(
+          r'CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?[`"\[]?([A-Za-z0-9_]+)[`"\]]?\s*\((.*?)\);',
+          sql_text,
+          flags=re.IGNORECASE | re.DOTALL
+        )
+
+        for match in pattern:
+
+          table_name = match.group(1)
+          body = match.group(2)
+
+          columns = []
+
+          # split by commas that are not inside parenthese 
+          parts = re.split(r',\s*(?![^()]*\))',body)
+
+          for part in parts:
+            part = part.strip()
+
+            if not part:
+              continue
+            upper = part.upper()
+
+            # Skip constraints
+            if upper.startswith((
+              "PRIMARY KEY",
+              "FOREIGN KEY",
+              "UNIQUE",
+              "CHECK",
+              "CONSTRAINT",
+              "INDEX",
+              "KEY"
+            )):
+              continue
+
+            # Extract first token as column name
+            m = re.match(r'[`"\[]?([A-Za-z0-9_]+)[`"\]]?', part)
+
+            if m:
+              columns.append(m.group(1))
+
+          table_columns[table_name] = columns
+
+        return table_columns
+
+
+      # Parse INSERT / REPLACE
+      def parse_insert(sql_text, table_columns):
+
+        tables = {}
+
+        regex = re.findall(
+          r'(INSERT INTO|REPLACE INTO)\s+[`"]?(\w+)[`"]?\s*(\((.*?)\))?\s*VALUES\s*(.*?);',
+          sql_text,
+          re.I | re.S
+        )
+
+        for _, table, _, cols, values in regex:
+
+          if cols:
+            columns = [c.strip(" `[]\"") for c in cols.split(",")]
+          else:
+            columns = table_columns.get(table, [])
+
+          rows = re.findall(r'\((.*?)\)', values, re.S)
+
+          for row in rows:
+
+            vals = split_values(row)
+            vals = [clean(v) for v in vals]
+
+            if table not in tables:
+              tables[table] = []
+
+            tables[table].append(vals)
+
+        return tables
+      
+      # Parse COPY FROM STDIN
+      def parse_copy(sql_text):
+
+        tables = {}
+
+        regex = re.findall(
+          r'COPY\s+(\w+)\s*\((.*?)\)\s*FROM stdin;(.*?)\\\.',
+          sql_text,
+          re.S | re.I
+        )
+
+        for table, cols, body in regex:
+
+          columns = [c.strip() for c in cols.split(",")]
+
+          rows = []
+
+          for line in body.strip().splitlines():
+            rows.append(line.split("\t"))
+
+          tables[table] = {
+            "columns": columns,
+            "rows": rows
+          }
+
+        return tables
+
+
+      # Parse LOAD DATA INFILE
+      def parse_load_data(sql_text):
+
+        commands = re.findall(
+          r"LOAD DATA.*?INFILE.*?INTO TABLE\s+(\w+)",
+          sql_text,
+          re.I | re.S
+        )
+
+        return commands
+
+
+      # Parse BULK INSERT
+      def parse_bulk_insert(sql_text):
+
+        commands = re.findall(
+          r"BULK INSERT\s+(\w+)",
+          sql_text,
+          re.I
+        )
+
+        return commands
+
+
+      # Main
+      if uploaded_file:
+
+        sql_text = uploaded_file.read().decode(
+          "utf-8",
+          errors="ignore"
+        )
+
+        # Ignore SQLite commands
+        sql_text = re.sub(r'^\..*$', '', sql_text, flags=re.MULTILINE)
+
+        table_columns = parse_create_table(sql_text)
+
+        insert_tables = parse_insert(sql_text, table_columns)
+
+        copy_tables = parse_copy(sql_text)
+
+        load_tables = parse_load_data(sql_text)
+
+        bulk_tables = parse_bulk_insert(sql_text)
+
+        if len(insert_tables) == 0 and len(copy_tables) == 0:
+
+          st.warning("No supported data statements found.")
+
+        # INSERT / REPLACE
+        for table, rows in insert_tables.items():
+
+          headers = table_columns.get(table, [])
+
+          if headers:
+            # ensure row length matches header length 
+            normalized_rows = []
+
+            for row in rows:
+              if len(row) < len(headers):
+                row += [None] * (len(headers) - len(row))
+              elif len(row) > len(headers):
+                row = row[:len(headers)]
+
+              normalized_rows.append(row)
+            df = pd.DataFrame(normalized_rows, columns=headers)
+          else:
+            df = pd.DataFrame(rows)
+
+          st.subheader(f"SQL Data: {table}")
+          st.dataframe(df)
+
+          csv_data = df.to_csv(index=False).encode("utf-8")
+
+          st.download_button(
+            label=f"Download {table}.csv",
+            data=csv_data,
+            file_name=f"{table}.csv",
+            mime="text/csv"
+          )
+
+          # COPY FROM STDIN
+          for table, data in copy_tables.items():
+
+            df = pd.DataFrame(
+              data["rows"],
+              columns=data["columns"]
+            )
+
+            st.subheader(f"COPY SQL Data: {table}")
+            st.dataframe(df)
+
+            st.download_button(
+              f"Download {table}.csv",
+              df.to_csv(index=False).encode(),
+              file_name=f"{table}.csv"
+            )
+
+        # LOAD DATA
+        if load_tables:
+
+          st.subheader("LOAD DATA INFILE Commands")
+
+          for t in load_tables:
+            st.info(f"Found LOAD DATA command for table: {t}")
+
+        # BULK INSERT
+        if bulk_tables:
+
+          st.subheader("SQL Server BULK INSERT")
+
+          for t in bulk_tables:
+            st.info(f"Found BULK INSERT for table: {t}")
 
 
     # DATA ANALYSIS 
@@ -1381,7 +1824,7 @@ if st.session_state.started:
       elif analy_option == 'Correlation and Regression':
         # hide subtitle
         st.markdown(subtitle, unsafe_allow_html=True)
-        cr = ['Selct Option','Correlation-coefficient', 'Linear Regression']
+        cr = ['Selct Option','Correlation-coefficient', 'Linear Regression', 'Homoscedasticity', 'Multicollinearity']
         cr_option = st.sidebar.selectbox('Select Option:', cr)
         
         # correlation_coeffficient 
@@ -1439,8 +1882,212 @@ if st.session_state.started:
                 st.markdown( f'**P-values** for coefficients indicate the probability of observing such a coeffient if there were no actual relationship between the variables. **P-value < {sign_levl}** suggests that the coefficient is statistically significant, meaning the relationship is unlikely to be due to random chance. \n' \
                 '\n<a href="https://selar.com/n461o6yn1l">ReadMore On Linear Regression</a>', unsafe_allow_html=True)
             except Exception as e:
-              st.error(f"❌ An error occured: {e}")    
+              st.error(f"❌ An error occured: {e}") 
 
+          # Homoscedasticity Analysis
+        elif cr_option == 'Homoscedasticity':
+          st.header("📊 Homoscedasticity Analysis Tool")
+
+          st.info("""
+          perform homoscedasticity tests.
+          The Page supports:
+          - Levene's Test
+          - Bartlett's Test
+          - Fligner-Killeen Test
+          """)
+          numeric_cols = df4.select_dtypes(include=np.number).columns.tolist()
+          all_cols = df4.columns.tolist()
+
+          dependent = st.sidebar.selectbox(
+            "Select Numeric Variable",
+            numeric_cols
+          )
+
+          group = st.sidebar.selectbox(
+            "Select Group Variable",
+            all_cols
+          )
+
+          sign_levl = st.sidebar.text_input("Choose Your Significant Level:")
+          if len(numeric_cols) == 0:
+            st.error("No numeric columns found.")
+            st.stop()
+
+          if sign_levl == str():
+            st.warning("⚠️ Choose Significant Level and Press Enter Key to Proceed.")
+          else:
+            try:
+              if st.sidebar.button("Run Homoscedasticity Analysis"):
+
+                data = df4[[dependent, group]].dropna()
+
+                groups = [
+                  g[dependent].values
+                  for _, g in data.groupby(group)
+                ]
+
+                if len(groups) < 2:
+                  st.error("Need at least two groups.")
+                  st.stop()
+
+                # Levene Test
+                lev_stat, lev_p = levene(*groups)
+
+                # Bartlett Test
+                bart_stat, bart_p = bartlett(*groups)
+
+                # Fligner Test
+                flig_stat, flig_p = fligner(*groups)
+
+                results = pd.DataFrame({
+                  "Test":[
+                    "Levene",
+                    "Bartlett",
+                    "Fligner-Killeen"
+                  ],
+                  "Statistic":[
+                    lev_stat,
+                    bart_stat,
+                    flig_stat
+                  ],
+                  "P-value":[
+                    lev_p,
+                    bart_p,
+                    flig_p
+                  ]
+                })
+
+                st.subheader("Test Results")
+                st.dataframe(results)
+
+                st.subheader("🧾 Result Interpretation")
+
+                for i,row in results.iterrows():
+
+                  if row["P-value"] > float(sign_levl):
+                    st.success(
+                      f"{row['Test']}: Variances are equal (Fail to reject H₀)"
+                    )
+                  else:
+                    st.error(
+                      f"{row['Test']}: Variances are NOT equal (Reject H₀)"
+                    )
+
+                # Download Results
+
+                csv = results.to_csv(index=False)
+
+                st.download_button(
+                  label="Download Results CSV",
+                  data=csv,
+                  file_name="homoscedasticity_results.csv",
+                  mime="text/csv"
+                )
+            except Exception as e:
+              st.error(f"❌ An error occured: {e}") 
+
+          # Multicollinearity Analysis 
+        elif cr_option == 'Multicollinearity':
+          st.header("📊 Multicollinearity Analysis")
+          st.info("""
+          This page calculates:
+          - Variance Inflation Factor (VIF)
+          - Correlation Matrix
+          - Heatmap
+          - Interpretation of Multicollinearity
+          """)
+
+          # Select numeric columns
+          numeric_cols = df4.select_dtypes(include=np.number).columns.tolist()
+
+          if len(numeric_cols) < 2:
+            st.error("Dataset must contain at least two numeric columns.")
+          else:
+
+            selected_cols = st.sidebar.multiselect(
+              "Select Predictor Variables",
+              numeric_cols,
+              default=numeric_cols
+            )
+
+            if st.sidebar.button('Run Multicollinearity'):
+
+              if len(selected_cols) >= 2:
+
+                X = df4[selected_cols]
+
+                # Fill missing values
+                imputer = SimpleImputer(strategy="mean")
+                X = pd.DataFrame(
+                  imputer.fit_transform(X),
+                  columns=X.columns
+                )
+
+                st.subheader("Correlation Matrix")
+
+                corr = X.corr()
+
+                st.dataframe(corr)
+
+                # Heatmap
+                fig, ax = plt.subplots(figsize=(10,8))
+
+                cax = ax.imshow(corr, cmap="coolwarm", interpolation="nearest")
+
+                ax.set_xticks(range(len(corr.columns)))
+                ax.set_xticklabels(corr.columns, rotation=90)
+
+                ax.set_yticks(range(len(corr.columns)))
+                ax.set_yticklabels(corr.columns)
+
+                plt.colorbar(cax)
+
+                st.pyplot(fig)
+
+                # VIF Calculation
+                vif = pd.DataFrame()
+
+                vif["Variable"] = X.columns
+
+                vif["VIF"] = [
+                  variance_inflation_factor(X.values, i)
+                  for i in range(X.shape[1])
+                ]
+
+                # Interpretation
+                def interpret(v):
+                  if v < 5:
+                    return "No Multicollinearity"
+                  elif v < 10:
+                    return "Moderate Multicollinearity"
+                  else:
+                    return "High Multicollinearity"
+
+                vif["Interpretation"] = vif["VIF"].apply(interpret)
+
+                st.subheader("Variance Inflation Factor (VIF)")
+                st.dataframe(vif)
+
+                # Highlight problematic variables
+                high_vif = vif[vif["VIF"] >= 10]
+
+                if len(high_vif) > 0:
+                  st.warning("⚠ High multicollinearity detected.")
+                  st.dataframe(high_vif)
+                else:
+                  st.success("No serious multicollinearity detected.")
+
+                # Download
+                csv = vif.to_csv(index=False).encode("utf-8")
+
+                st.download_button(
+                  label="📥 Download VIF Results",
+                  data=csv,
+                  file_name="multicollinearity_vif_result.csv",
+                  mime="text/csv"
+                )
+              else:
+                st.warning("Select at least two predictor variables.")
 
         # Circular Mean
       elif analy_option == 'Circular Mean':
@@ -2021,6 +2668,177 @@ if st.session_state.started:
             plt.title(title)
           st.pyplot(fig)
 
+    # web scrapping
+  elif select_menu == 'Get Data & Others from Web':
+    st.markdown(hide2, unsafe_allow_html=True)
+    st.subheader("Get Data and Other Items From Webpages")
+    st.info("This helps you get data, images, links and other items from webpage. All you need to do is to paste a copied of your website/webpage link or url and load it.")
+
+    url = st.text_input("Enter Website URL")
+
+    if st.button("Load Webpage"):
+
+      if not url:
+        st.warning("Please enter a webpage URL.")
+
+      else:
+        try:
+          headers = {
+            "User-Agent": "Mozilla/5.0"
+          }
+
+          response = requests.get(url, headers=headers, timeout=30)
+          response.raise_for_status()
+
+          html = response.text
+          soup = BeautifulSoup(html, "lxml")
+
+  
+          # Load HTML Tables
+          try:
+            tables = pd.read_html(html)
+          except ValueError:
+            tables = []
+
+          st.session_state.tables = tables
+          st.session_state.soup = soup
+
+          st.success("Webpage loaded successfully!")
+
+        except Exception as e:
+          st.error(e)
+
+
+    # TABLE SECTION
+    if "tables" in st.session_state:
+
+      tables = st.session_state.tables
+
+      if len(tables) > 0:
+
+        st.header("WebPage Data")
+
+        table_names = [
+          f"Data {i+1} ({len(df)} rows × {len(df.columns)} columns)"
+          for i, df in enumerate(tables)
+        ]
+
+        selected = st.selectbox(
+          "Choose Data",
+          range(len(table_names)),
+          format_func=lambda x: table_names[x]
+        )
+
+        df = tables[selected]
+
+        st.dataframe(df, use_container_width=True)
+
+        cols = st.multiselect(
+          "Choose Columns",
+          df.columns.tolist(),
+          default=df.columns.tolist()
+        )
+
+        filtered = df[cols]
+
+        st.dataframe(filtered, use_container_width=True)
+
+        st.download_button(
+          "Download CSV",
+          filtered.to_csv(index=False).encode(),
+          "Webdata.csv",
+          "text/csv"
+        )
+
+      else:
+        st.info("No Web data found on this page.")
+
+    
+    # OTHER HTML ELEMENTS
+    if "soup" in st.session_state:
+
+      soup = st.session_state.soup
+
+      st.header("Get Other Items")
+
+      element = st.selectbox(
+        "Select Other Item",
+        [
+          "Links",
+          "Images",
+          "Paragraphs",
+          "Headings",
+          "Lists",
+          "Buttons"
+        ]
+      )
+
+      data = []
+
+      if element == "Links":
+
+        for tag in soup.find_all("a"):
+          data.append({
+            "Text": tag.get_text(strip=True),
+            "URL": tag.get("href")
+          })
+
+      elif element == "Images":
+
+        for tag in soup.find_all("img"):
+          data.append({
+            "Image": tag.get("src"),
+            "Alt": tag.get("alt")
+          })
+
+      elif element == "Paragraphs":
+
+        for tag in soup.find_all("p"):
+          text = tag.get_text(strip=True)
+          if text:
+            data.append({"Paragraph": text})
+
+      elif element == "Headings":
+
+        for level in range(1, 7):
+          for tag in soup.find_all(f"h{level}"):
+            data.append({
+              "Heading": tag.get_text(strip=True),
+              "Level": f"Heading {level}"
+            })
+
+      elif element == "Lists":
+
+        for tag in soup.find_all("li"):
+          text = tag.get_text(strip=True)
+          if text:
+            data.append({"List Item": text})
+
+      elif element == "Buttons":
+
+        for tag in soup.find_all("button"):
+          data.append({
+            "Button": tag.get_text(strip=True)
+          })
+
+      if len(data):
+
+        df = pd.DataFrame(data)
+
+        st.dataframe(df, use_container_width=True)
+
+        st.download_button(
+          "Download Data",
+          df.to_csv(index=False).encode(),
+          f"{element.lower()}.csv",
+          "text/csv"
+        )
+
+      else:
+
+        st.warning(f"No {element.lower()} found.")
+
+  
     # Home page 
   elif select_menu == 'About App':
     st.markdown(hide2, unsafe_allow_html=True)
