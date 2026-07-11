@@ -6,6 +6,4 @@ statsmodels
 matplotlib
 seaborn
 openpyxl
-sklearn
-beautifulsoup4
-lxml
+
