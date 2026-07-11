@@ -7,3 +7,4 @@ matplotlib
 seaborn
 openpyxl
 beautifulsoup4
+sklearn
