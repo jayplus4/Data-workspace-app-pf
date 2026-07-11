@@ -6,7 +6,7 @@ statsmodels
 matplotlib
 seaborn
 openpyxl
-request
+requests
 sklearn
 beautifulsoup4
 lxml
