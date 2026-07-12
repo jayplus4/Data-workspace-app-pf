@@ -8,4 +8,3 @@ seaborn
 openpyxl
 beautifulsoup4
 scikit-learn
-parser
