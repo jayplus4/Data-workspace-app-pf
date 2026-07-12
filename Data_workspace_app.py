@@ -41,6 +41,8 @@ st.set_page_config(
   layout="centered"
 )
 
+st.write("🌐 Data Workspace")
+
 #CSS Style
 hide= """
   <style>
@@ -97,7 +99,7 @@ if st.session_state.started:
   image_placeholder.empty()
   st.markdown("<h3 class='title'>Process Your Data: Turn Your Data into Insight</h3>", unsafe_allow_html=True)
 
-  menu = ['Choose Option', 'Data Analysis', 'Data Cleaning', 'Data Visualization', 'Convert Your Files', 'About App', 'My Portfolio','Get Data & Others from Web']
+  menu = ['Choose Option', 'Data Analysis', 'Data Cleaning', 'Data Visualization', 'Convert Your Files','Get Data & Others from Web', 'About App', 'My Portfolio']
   # menu to select from
   select_menu = st.selectbox("Select Menu to Talk to Your Data: ", menu)
 
@@ -108,7 +110,8 @@ if st.session_state.started:
     '<div class="list">2. Data Cleaning </div>\n' \
     '<div class="list">3. Data Visualization </div>\n' \
     '<div class="list">4. About the App & Portfolio</div>\n' \
-    '<div class="list">5. Convert Your Files</div>',
+    '<div class="list">5. Convert Your Files</div>\n'\
+    '<div class="list">5. Get Data, Images, links & other Items from the Website</div>',
     unsafe_allow_html=True
   )
   
@@ -568,6 +571,8 @@ if st.session_state.started:
       # upload file 
       st.sidebar.subheader("📂Upload Excel file to Convert")
       upload_file = st.sidebar.file_uploader("Upload an Excel File", type=['xlsx'])
+      
+      st.info('This page support conversion of CSV files to Excel. Do well to upload a CSV file in the sidebar by the left of your screen and see the wonder!.')
 
       if upload_file != None:
         st.sidebar.success("✅ File Uploaded Successfully!")
@@ -601,6 +606,8 @@ if st.session_state.started:
       # upload file 
       st.sidebar.subheader("📂 Upload CSV file to Convert")
       upload_file = st.sidebar.file_uploader("Upload a CSV File", type=['csv'])
+      
+      st.info('This page support conversion of CSV files to Excel. Do well to upload a CSV file in the sidebar by the left of your screen and see the wonder!.')
     
       if upload_file != None:
         st.sidebar.success("✅ File Uploaded Successfully!")
@@ -2677,162 +2684,164 @@ if st.session_state.started:
     url = st.text_input("Enter Website URL")
 
     if st.button("Load Webpage"):
-
-      if not url:
-        st.warning("Please enter a webpage URL.")
-
-      else:
-        try:
-          headers = {
-            "User-Agent": "Mozilla/5.0"
-          }
-
-          response = requests.get(url, headers=headers, timeout=30)
-          response.raise_for_status()
-
-          html = response.text
-          soup = BeautifulSoup(html, "lxml")
-
+      try:
+        if not url:
+          st.warning("Please enter a webpage URL.")
   
-          # Load HTML Tables
+        else:
           try:
-            tables = pd.read_html(html)
-          except ValueError:
-            tables = []
-
-          st.session_state.tables = tables
-          st.session_state.soup = soup
-
-          st.success("Webpage loaded successfully!")
-
-        except Exception as e:
-          st.error(e)
-
-
-    # TABLE SECTION
-    if "tables" in st.session_state:
-
-      tables = st.session_state.tables
-
-      if len(tables) > 0:
-
-        st.header("WebPage Data")
-
-        table_names = [
-          f"Data {i+1} ({len(df)} rows × {len(df.columns)} columns)"
-          for i, df in enumerate(tables)
-        ]
-
-        selected = st.selectbox(
-          "Choose Data",
-          range(len(table_names)),
-          format_func=lambda x: table_names[x]
-        )
-
-        df = tables[selected]
-
-        st.dataframe(df, use_container_width=True)
-
-        cols = st.multiselect(
-          "Choose Columns",
-          df.columns.tolist(),
-          default=df.columns.tolist()
-        )
-
-        filtered = df[cols]
-
-        st.dataframe(filtered, use_container_width=True)
-
-        st.download_button(
-          "Download CSV",
-          filtered.to_csv(index=False).encode(),
-          "Webdata.csv",
-          "text/csv"
-        )
-
-      else:
-        st.info("No Web data found on this page.")
-
+            headers = {
+              "User-Agent": "Mozilla/5.0"
+            }
+  
+            response = requests.get(url, headers=headers, timeout=30)
+            response.raise_for_status()
+  
+            html = response.text
+            soup = BeautifulSoup(html, "lxml")
+  
     
-    # OTHER HTML ELEMENTS
-    if "soup" in st.session_state:
-
-      soup = st.session_state.soup
-
-      st.header("Get Other Items")
-
-      element = st.selectbox(
-        "Select Other Item",
-        [
-          "Links",
-          "Images",
-          "Paragraphs",
-          "Headings",
-          "Lists",
-          "Buttons"
-        ]
-      )
-
-      data = []
-
-      if element == "Links":
-
-        for tag in soup.find_all("a"):
-          data.append({
-            "Text": tag.get_text(strip=True),
-            "URL": tag.get("href")
-          })
-
-      elif element == "Images":
-
-        for tag in soup.find_all("img"):
-          data.append({
-            "Image": tag.get("src"),
-            "Alt": tag.get("alt")
-          })
-
-      elif element == "Paragraphs":
-
-        for tag in soup.find_all("p"):
-          text = tag.get_text(strip=True)
-          if text:
-            data.append({"Paragraph": text})
-
-      elif element == "Headings":
-
-        for level in range(1, 7):
-          for tag in soup.find_all(f"h{level}"):
-            data.append({
-              "Heading": tag.get_text(strip=True),
-              "Level": f"Heading {level}"
-            })
-
-      elif element == "Lists":
-
-        for tag in soup.find_all("li"):
-          text = tag.get_text(strip=True)
-          if text:
-            data.append({"List Item": text})
-
-      elif element == "Buttons":
-
-        for tag in soup.find_all("button"):
-          data.append({
-            "Button": tag.get_text(strip=True)
-          })
-
-      if len(data):
-
-        df = pd.DataFrame(data)
-
-        st.dataframe(df, use_container_width=True)
-
-        st.download_button(
-          "Download Data",
-          df.to_csv(index=False).encode(),
-          f"{element.lower()}.csv",
-          "text/csv"
+            # Load HTML Tables
+            try:
+              tables = pd.read_html(html)
+            except ValueError:
+              tables = []
+  
+            st.session_state.tables = tables
+            st.session_state.soup = soup
+  
+            st.success("Webpage loaded successfully!")
+  
+          except Exception as e:
+            st.error(e)
+  
+  
+      # TABLE SECTION
+      if "tables" in st.session_state:
+  
+        tables = st.session_state.tables
+  
+        if len(tables) > 0:
+  
+          st.header("WebPage Data")
+  
+          table_names = [
+            f"Data {i+1} ({len(df)} rows × {len(df.columns)} columns)"
+            for i, df in enumerate(tables)
+          ]
+  
+          selected = st.selectbox(
+            "Choose Data",
+            range(len(table_names)),
+            format_func=lambda x: table_names[x]
+          )
+  
+          df = tables[selected]
+  
+          st.dataframe(df, use_container_width=True)
+  
+          cols = st.multiselect(
+            "Choose Columns",
+            df.columns.tolist(),
+            default=df.columns.tolist()
+          )
+  
+          filtered = df[cols]
+  
+          st.dataframe(filtered, use_container_width=True)
+  
+          st.download_button(
+            "Download CSV",
+            filtered.to_csv(index=False).encode(),
+            "Webdata.csv",
+            "text/csv"
+          )
+  
+        else:
+          st.info("No Web data found on this page.")
+  
+      
+      # OTHER HTML ELEMENTS
+      if "soup" in st.session_state:
+  
+        soup = st.session_state.soup
+  
+        st.header("Get Other Items")
+  
+        element = st.selectbox(
+          "Select Other Item",
+          [
+            "Links",
+            "Images",
+            "Paragraphs",
+            "Headings",
+            "Lists",
+            "Buttons"
+          ]
         )
+  
+        data = []
+  
+        if element == "Links":
+  
+          for tag in soup.find_all("a"):
+            data.append({
+              "Text": tag.get_text(strip=True),
+              "URL": tag.get("href")
+            })
+  
+        elif element == "Images":
+  
+          for tag in soup.find_all("img"):
+            data.append({
+              "Image": tag.get("src"),
+              "Alt": tag.get("alt")
+            })
+  
+        elif element == "Paragraphs":
+  
+          for tag in soup.find_all("p"):
+            text = tag.get_text(strip=True)
+            if text:
+              data.append({"Paragraph": text})
+  
+        elif element == "Headings":
+  
+          for level in range(1, 7):
+            for tag in soup.find_all(f"h{level}"):
+              data.append({
+                "Heading": tag.get_text(strip=True),
+                "Level": f"Heading {level}"
+              })
+  
+        elif element == "Lists":
+  
+          for tag in soup.find_all("li"):
+            text = tag.get_text(strip=True)
+            if text:
+              data.append({"List Item": text})
+  
+        elif element == "Buttons":
+  
+          for tag in soup.find_all("button"):
+            data.append({
+              "Button": tag.get_text(strip=True)
+            })
+  
+        if len(data):
+  
+          df = pd.DataFrame(data)
+  
+          st.dataframe(df, use_container_width=True)
+  
+          st.download_button(
+            "Download Data",
+            df.to_csv(index=False).encode(),
+            f"{element.lower()}.csv",
+            "text/csv"
+          )
+      except Exception as e:
+          st.error(f"Error: {e}")
 
       else:
 
