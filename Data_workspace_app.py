@@ -31,7 +31,8 @@ from scipy.stats import levene, bartlett, fligner
 import statsmodels.api as sm
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 from sklearn.impute import SimpleImputer
-
+from urllib.parse import urljoin, urlparse
+from io import StringIO
 
 
 # page config
@@ -69,6 +70,14 @@ subtitle ="""
     display: none;
    }
   </style>"""
+
+subsubtitle ="""
+  <style>
+   .subsubtitle{
+    display: none;
+   }
+  </style>"""
+
 btn = """
   <style>
    .st-key-btn{
@@ -80,8 +89,9 @@ btn = """
 # welcome page
 welcome = st.markdown('<h2><marquee direction="left" class="welcome" style="background-color: skyblue");">Welcome To All-in-One Data Workspace and MY Official Portfolio. Turn Raw Data into Clear, Actionable Insight; Faster and Smarter. Let\'s Get Started!</marquee></h2>' \
 '<p class="welcome" style="text-align: justify;">This app is built for professionals who work with data every day and need results without friction. Whether your data comes messy, incomplete, or in different formats, this platform helps you clean, analyse, visualise, and convert files seamlessly.</p>'
-'<p class="welcome" style="text-align: justify;">From raw data to meaningful stories, this app supports every step of your data journey. Click the <a href="https://selar.com/n461o6yn1l", class="welcome">Link</a> to learn more about Data Analysis.</p>'\
+'<p class="welcome" style="text-align: justify;">From row data to meaningful stories, this app supports every step of your data journey. Click the <a href="https://selar.com/n461o6yn1l", class="welcome">Link</a> to learn more about Data Analysis.</p>'\
 '<p style="text-align: justify;"><strong class="welcome">Upload your data and start transforming information into impact.</strong></p> ', unsafe_allow_html=True) 
+
 
 
 # start button
@@ -99,7 +109,7 @@ if st.session_state.started:
   image_placeholder.empty()
   st.markdown("<h3 class='title'>Process Your Data: Turn Your Data into Insight</h3>", unsafe_allow_html=True)
 
-  menu = ['Choose Option', 'Data Analysis', 'Data Cleaning', 'Data Visualization', 'Convert Your Files','Get Data & Others from Web', 'About App', 'My Portfolio']
+  menu = ['Choose Option', 'Data Analysis', 'Data Cleaning', 'Data Visualization', 'Convert Your Files', 'Get Data & Others from Web', 'About App', 'My Portfolio']
   # menu to select from
   select_menu = st.selectbox("Select Menu to Talk to Your Data: ", menu)
 
@@ -110,7 +120,7 @@ if st.session_state.started:
     '<div class="list">2. Data Cleaning </div>\n' \
     '<div class="list">3. Data Visualization </div>\n' \
     '<div class="list">4. About the App & Portfolio</div>\n' \
-    '<div class="list">5. Convert Your Files</div>\n'\
+    '<div class="list">5. Convert Your File To Excel or CSV</div>\n' \
     '<div class="list">5. Get Data, Images, links & other Items from the Website</div>',
     unsafe_allow_html=True
   )
@@ -121,10 +131,11 @@ if st.session_state.started:
     st.markdown(hide2, unsafe_allow_html=True)
     #title
     st.markdown("<h2 class='subtitle'>🧹 Clean Your Dataset</h2>", unsafe_allow_html=True)
+    st.markdown("<h4 class='subtitle'>Upload your dataset in the siderbar by the left of your device screen to begin data cleaning.</h4>", unsafe_allow_html=True)
     column1, column2 = st.columns(2)
 
     # upload file 
-    st.sidebar.subheader("📂 Upload CSV or Excel file to start cleaning")
+    st.sidebar.subheader("📂 Upload file to start cleaning")
     upload_file = st.sidebar.file_uploader("Upload a File", type=['csv', "xlsx"])
     
     # condition to upload file 
@@ -148,10 +159,13 @@ if st.session_state.started:
 
       # show dataset
       if st.sidebar.checkbox('Show Dataset'):
+        st.markdown(subtitle, unsafe_allow_html=True)
         st.write(cleaned_df)
+        st.write(f"Dataset Rows and Columns:{cleaned_df.shape}")
 
       
-      if st.sidebar.checkbox("Check✅ Delete Row and Column"):
+      if st.sidebar.checkbox("Check ✅ Delete Row and Column"):
+        st.markdown(subtitle, unsafe_allow_html=True)
         try:
           # st.subheader('Your Dataset')
           # st.write(df1)
@@ -182,7 +196,7 @@ if st.session_state.started:
           clean_df = st.session_state.clean_df
 
           st.subheader("Dataset Preview")
-          st.dataframe(clean_df, use_container_width=True)
+          st.dataframe(clean_df, width='stretch')
           st.write(f"Dataset Rows and Column{clean_df.shape}")
 
           st.markdown("-----")
@@ -284,7 +298,7 @@ if st.session_state.started:
           # updated dataset 
 
           st.subheader("Updated Dataset")
-          st.dataframe(st.session_state.clean_df, use_container_width=True)
+          st.dataframe(st.session_state.clean_df, width='stretch')
           st.info("Download updated dataset, upload back and start analysis")
 
           # Download clean Dataset 
@@ -302,6 +316,7 @@ if st.session_state.started:
       # Handle mising values
       if clean_option == "Handle Missing values":
         st.markdown(subtitle, unsafe_allow_html=True)
+        st.markdown("<h4 class='subsubtitle'>This page allow you to handle missing values in your dataset, such as checking for missing values and dropping them. you can also replace missing values with manual input or selected column of your dataset Mean. Select option from the sidebar by the left of your device screen to begin.</h4>", unsafe_allow_html=True)
         # check for missing value
         if st.sidebar.checkbox("Check Missing value"):
           st.subheader("Number of Missing Values")
@@ -337,6 +352,7 @@ if st.session_state.started:
         
         # replace with manual input 
         if select_missing == 'Replace with Mannual input and all missing value':
+          st.markdown(subsubtitle, unsafe_allow_html=True)
           input_value = st.sidebar.text_input("Input Value To Replace missing values:")
           if input_value == str():
             st.sidebar.warning('⚠️ Input Values and Press Enter Key to Replace')
@@ -388,6 +404,7 @@ if st.session_state.started:
 
           # replace with mean 
         elif select_missing == 'Replace with Mean value':
+          st.markdown(subsubtitle, unsafe_allow_html=True)
           numeric_cols = df1.select_dtypes(include=['float64', 'int64']).columns.tolist()
           select_mean_column = st.sidebar.selectbox("Select Column To get the Mean value:", numeric_cols)
           select_column_for_mean_rep = st.sidebar.selectbox("Select Column To Replace Missing with the Mean value:", df1.columns)
@@ -445,11 +462,13 @@ if st.session_state.started:
         # Handle duplicated values 
       elif clean_option == "Handle Duplicates":
         st.markdown(subtitle, unsafe_allow_html=True)
+        st.markdown("<h4 class='subsubtitle'>This page allow you to handle duplicated values in your dataset, such as handling duplicate values from the first column of your dataset or selected column. select option from the sidebar by the left of your device screen to begin.</h4>", unsafe_allow_html=True)
         handle_dup = ['Choose Method','Handle Duplicate from the First Column','Handle Duplicate from the Select Column' ]
         handle_sel = st.sidebar.selectbox('Choose Method to Handle Duplicates', handle_dup)
 
         # from the first column 
         if handle_sel == 'Handle Duplicate from the First Column':
+          st.markdown(subsubtitle, unsafe_allow_html=True)
           duplicated = df1.duplicated().sum()
           st.metric(label="**Duplicate Value:**", value=f"{duplicated}")
           # drop duplicated values
@@ -477,6 +496,7 @@ if st.session_state.started:
 
         #  from the selected column 
         elif handle_sel == 'Handle Duplicate from the Select Column':
+          st.markdown(subsubtitle, unsafe_allow_html=True)
           #select column to check duplicate
           select_column = st.sidebar.selectbox("Select Column to check duplicate:", cleaned_df.columns)
           show_dupl = cleaned_df[select_column].duplicated().sum()
@@ -507,10 +527,12 @@ if st.session_state.started:
         # convert types
       elif clean_option == 'Covert Column Types':
         st.markdown(subtitle, unsafe_allow_html=True)
+        st.markdown("<h4 class='subsubtitle'>This page allow you to formatting your column data to either date or numeric data type. select option from the sidebar by the left of your device screen to begin.</h4>", unsafe_allow_html=True)
         convert_type = ['Select Option', 'To Date Type', 'To Numeric Type']
         select_convert = st.sidebar.selectbox("Select Convert Type:", convert_type)
         # convert to date type 
         if select_convert == 'To Date Type':
+          st.markdown(subsubtitle, unsafe_allow_html=True)
           select_column_convert = st.sidebar.selectbox("Select Column to convert:", df1.columns)
           if st.sidebar.button("Convert To Date Type"):
             df1[select_column_convert] = pd.to_datetime(df1[select_column_convert], errors='coerce')
@@ -532,6 +554,7 @@ if st.session_state.started:
 
         # covert to numeric type 
         if select_convert == 'To Numeric Type':
+          st.markdown(subsubtitle, unsafe_allow_html=True)
           select_column_convert = st.sidebar.selectbox("Select Column to convert:", df1.columns)
           if st.sidebar.button("Convert To Numeric Type"):
             df1[select_column_convert] = pd.to_numeric(df1[select_column_convert], errors='coerce')
@@ -557,6 +580,7 @@ if st.session_state.started:
     st.markdown(hide2, unsafe_allow_html=True)
     #title
     st.markdown("<h2 class='subtitle'>Convert Your Files</h2>", unsafe_allow_html=True)
+    st.markdown("<h4 class='subtitle'>Choose file to covert from the siderbar by the left of your device screen to begin.</h4>", unsafe_allow_html=True)
     column1, column2 = st.columns(2)
 
     # select to file 
@@ -571,7 +595,7 @@ if st.session_state.started:
       # upload file 
       st.sidebar.subheader("📂Upload Excel file to Convert")
       upload_file = st.sidebar.file_uploader("Upload an Excel File", type=['xlsx'])
-      
+
       st.info('This page support conversion of CSV files to Excel. Do well to upload a CSV file in the sidebar by the left of your screen and see the wonder!.')
 
       if upload_file != None:
@@ -602,23 +626,23 @@ if st.session_state.started:
     elif select_files == "CSV To Excel":
       # hide subtitle
       st.markdown(subtitle, unsafe_allow_html=True)
-    
+
       # upload file 
       st.sidebar.subheader("📂 Upload CSV file to Convert")
       upload_file = st.sidebar.file_uploader("Upload a CSV File", type=['csv'])
-      
+
       st.info('This page support conversion of CSV files to Excel. Do well to upload a CSV file in the sidebar by the left of your screen and see the wonder!.')
-    
+
       if upload_file != None:
         st.sidebar.success("✅ File Uploaded Successfully!")
 
         # read file 
         df3 = pd.read_csv(upload_file)
-      
+
         # show dataset
         if st.sidebar.checkbox('Show Dataset'):
           st.write(df3)
-          
+        
         if st.sidebar.checkbox('Download to Excel'):
           def to_excel(df3):
             output = BytesIO()
@@ -633,8 +657,9 @@ if st.session_state.started:
             file_name= 'My_excel.xlsx',
             mime='application/vnd.opnxmlformats-offcedocument.spreadsheetml.sheeet'
           )
-          
-        # JSON TO CSV 
+
+  
+      # JSON TO CSV 
     elif select_files == 'JSON To CSV':
       # hide subtitle
       st.markdown(subtitle, unsafe_allow_html=True)
@@ -692,7 +717,7 @@ if st.session_state.started:
             st.success("JSON loaded successfully!")
 
             st.write("Data Preview")
-            st.dataframe(df, use_container_width=True)
+            st.dataframe(df, width='stretch')
 
             # Convert DataFrame to CSV
             csv = df.to_csv(index=False).encode("utf-8")
@@ -779,7 +804,7 @@ if st.session_state.started:
 
             st.dataframe(
               df,
-              use_container_width=True
+              width='stretch'
             )
 
             csv = df.to_csv(index=False).encode("utf-8")
@@ -1064,18 +1089,18 @@ if st.session_state.started:
           for t in bulk_tables:
             st.info(f"Found BULK INSERT for table: {t}")
 
-
     # DATA ANALYSIS 
   elif select_menu == 'Data Analysis':
     # Hide menu 
     st.markdown(hide2, unsafe_allow_html=True)
     #title
     st.markdown("<h2 class='subtitle'>Perform Data Analysis</h2>", unsafe_allow_html=True)
+    st.markdown("<h4 class='subtitle'>Upload your dataset in the siderbar by the left of your device screen to begin data analysis.</h4>", unsafe_allow_html=True)
     # st.title("Perform Data Analysis")
     column1, column2 = st.columns(2)
 
     # upload file 
-    st.sidebar.subheader("📂 Upload CSV or Excel File to Start Analysis")
+    st.sidebar.subheader("📂 Upload File to Start Analysis")
     upload_file = st.sidebar.file_uploader("Upload a File", type=['csv', "xlsx"])
     
     # condition to upload file 
@@ -1109,13 +1134,16 @@ if st.session_state.started:
       if analy_option == 'Descriptive Statistics':
         # hide subtitle
         st.markdown(subtitle, unsafe_allow_html=True)
+        st.markdown("<h4 class='subsubtitle'>This page allow you to perform descriptive analysis. Such as Average/Mean, Meadian, Standard Deviation, show summary statistics of your dataset and also group your data by Total or Average. Select option from the sidebar by the left of your device screen to begin.</h4>", unsafe_allow_html=True)
         if st.sidebar.checkbox('Summary Statistic:'):
+          st.markdown(subsubtitle, unsafe_allow_html=True)
           st.write(df4.describe(include='all').T)
         descri = ['Select Option', 'Average/Mean', 'Median', 'Standard Deviation','Groupby']
         descri_menu = st.sidebar.selectbox("Select Option for Descriptive:", descri )
 
         # average/mean 
         if descri_menu == 'Average/Mean':
+          st.markdown(subsubtitle, unsafe_allow_html=True)
           aver_column = st.sidebar.selectbox("select Column for Average/Mean", df4.columns)
           # check if the column is numeric type
           if pd.api.types.is_numeric_dtype(df4[aver_column]):
@@ -1127,6 +1155,7 @@ if st.session_state.started:
 
           # find Median
         elif descri_menu == 'Median':
+          st.markdown(subsubtitle, unsafe_allow_html=True)
           median_column = st.sidebar.selectbox("select Column for Median", df4.columns)
           # check if the column is numeric type
           if pd.api.types.is_numeric_dtype(df4[median_column]):
@@ -1138,6 +1167,7 @@ if st.session_state.started:
 
           # standard deviation 
         elif descri_menu == 'Standard Deviation':
+          st.markdown(subsubtitle, unsafe_allow_html=True)
           std_column = st.sidebar.selectbox("select Column for Standard Deviation", df4.columns)
           # check if the column is numeric type
           if pd.api.types.is_numeric_dtype(df4[std_column]):
@@ -1149,6 +1179,7 @@ if st.session_state.started:
 
           # groupby
         elif descri_menu == 'Groupby':
+          st.markdown(subsubtitle, unsafe_allow_html=True)
           group_op = ['Select Option', 'Groupby Total', 'Groupby Average']
           grp_option = st.sidebar.selectbox("Choose Grouping Options:", group_op)
 
@@ -1190,6 +1221,7 @@ if st.session_state.started:
       elif analy_option == 'Hypothesis Testing':
         # hide subtitle
         st.markdown(subtitle, unsafe_allow_html=True)
+        st.markdown("<h4 class='subsubtitle'>This page allow testing for Hypothesis. Such as T-test, ANOVA-test, Chi-square test, Normality test and Non-parametric test. Select option from the sidebar by the left of your device screen to begin.</h4>", unsafe_allow_html=True)
         text_box = """
           \nT-tests: This comparing the means of one or two samples\n.
           \nANOVA Test: allows performing ANOVA (Analysis of Variance) tests.
@@ -1201,6 +1233,7 @@ if st.session_state.started:
 
         # T-test 
         if select_hyp == 'T-test':
+          st.markdown(subsubtitle, unsafe_allow_html=True)
           tt = ['Select Option','One-Sample T-test', 'Two-Sample T-test']
           select_tt = st.sidebar.selectbox("Select Option For T-testing:", tt)
 
@@ -1279,6 +1312,7 @@ if st.session_state.started:
 
           # ANOVA
         elif select_hyp == 'ANOVA-test':
+          st.markdown(subsubtitle, unsafe_allow_html=True)
           text_anv = '''
             \nOne-way ANOVA is used to compare the means of three or more independent groups based on one independent variable
             \nTwo-Way ANOVA is used when you have two independent variables and want to examine effect on a dependent variable.
@@ -1415,6 +1449,7 @@ if st.session_state.started:
 
           # Chi-square test 
         elif select_hyp == 'Chi-square test':
+          st.markdown(subsubtitle, unsafe_allow_html=True)
           text_chi = '''
             \nChi-square Goodness-of-fit test: determines if the observed frequency distribution significantly differs from an expected distribution.
             \nChi-square test for independence: assesses whether there is a statistically significant association between two categorical variable, and it uses a contingency table to observed frequencies.
@@ -1518,6 +1553,7 @@ if st.session_state.started:
 
           # Normality Test 
         elif select_hyp == 'Normality Test':
+          st.markdown(subsubtitle, unsafe_allow_html=True)
           text_norm = '''
             \n Shapiro-Wilk test is a widely used and powerful test for normality.
             \n Kolmogorov-Smirnov (K-S) test compares the empirical cumulative distribution function of a theoretical normal distribution.
@@ -1636,6 +1672,7 @@ if st.session_state.started:
 
           # Non-parametric Test
         elif select_hyp == 'Non-parametric Test':
+          st.markdown(subsubtitle, unsafe_allow_html=True)
           text_non = '''
             \n Mann-Whitney U Test: is a non-parametric statistical test used to compare two independent groups when the dependent variable is either ordinal or continuous but not normally distributed.
             \n Wilcoxon Signed-Rank Test: This is a non-parametric statistical test used to compare two related, paired samples to determine if their population means ranks differ.
@@ -1794,10 +1831,12 @@ if st.session_state.started:
       elif analy_option == 'Confidence Intervals':
         # hide subtitle
         st.markdown(subtitle, unsafe_allow_html=True)
+        st.markdown("<h4 class='subsubtitle'>This page allow you to run 95% confidence interval for Mean. select sample Mean column and check ✅ on the perform confidence interval in the sidebar by the left of your device screen to begin.</h4>", unsafe_allow_html=True)
         numeric_cols = df4.select_dtypes(include=['float64', 'int64']).columns.tolist()
         mean_col = st.sidebar.selectbox('Choose Sample Mean:', numeric_cols)
         # confidence interval 
         if st.sidebar.checkbox("Perform Confidence Interval"):
+          st.markdown(subsubtitle, unsafe_allow_html=True)
           try:
             if st.sidebar.button("Run Confidence Interval"):
               # mean_Mark
@@ -1831,11 +1870,14 @@ if st.session_state.started:
       elif analy_option == 'Correlation and Regression':
         # hide subtitle
         st.markdown(subtitle, unsafe_allow_html=True)
+        st.markdown("<h4 class='subsubtitle'>This page allow you to perform correlation and regression analysis. such as Correlation-coefficient, Linear Regression, Homoscedasticity, and Multicollinearity analysis. select option in the sidebar by the left of your device screen to begin.</h4>", unsafe_allow_html=True)
+
         cr = ['Selct Option','Correlation-coefficient', 'Linear Regression', 'Homoscedasticity', 'Multicollinearity']
         cr_option = st.sidebar.selectbox('Select Option:', cr)
         
         # correlation_coeffficient 
         if cr_option == 'Correlation-coefficient':
+          st.markdown(subsubtitle, unsafe_allow_html=True)
           # correlation Coefficient
           if st.sidebar.checkbox('Perform Correlation Coefficient'):
             try:
@@ -1859,9 +1901,9 @@ if st.session_state.started:
               st.error(f"❌ An error occured: {e}")    
             
 
-
           # Linear Regression
         elif cr_option == 'Linear Regression':
+          st.markdown(subsubtitle, unsafe_allow_html=True)
           numeric_cols = df4.select_dtypes(include=['float64', 'int64']).columns.tolist()
           sign_levl = st.sidebar.text_input("Choose Your Significant Level:")
           st.sidebar.info("❎ 0.05 is usual used for significant level")
@@ -1889,10 +1931,12 @@ if st.session_state.started:
                 st.markdown( f'**P-values** for coefficients indicate the probability of observing such a coeffient if there were no actual relationship between the variables. **P-value < {sign_levl}** suggests that the coefficient is statistically significant, meaning the relationship is unlikely to be due to random chance. \n' \
                 '\n<a href="https://selar.com/n461o6yn1l">ReadMore On Linear Regression</a>', unsafe_allow_html=True)
             except Exception as e:
-              st.error(f"❌ An error occured: {e}") 
+              st.error(f"❌ An error occured: {e}")    
 
+          
           # Homoscedasticity Analysis
         elif cr_option == 'Homoscedasticity':
+          st.markdown(subsubtitle, unsafe_allow_html=True)
           st.header("📊 Homoscedasticity Analysis Tool")
 
           st.info("""
@@ -1905,6 +1949,11 @@ if st.session_state.started:
           numeric_cols = df4.select_dtypes(include=np.number).columns.tolist()
           all_cols = df4.columns.tolist()
 
+          # Check numeric columns before creating selectbox
+          if len(numeric_cols) == 0:
+            st.error("No numeric columns found.")
+            st.stop()
+
           dependent = st.sidebar.selectbox(
             "Select Numeric Variable",
             numeric_cols
@@ -1915,86 +1964,176 @@ if st.session_state.started:
             all_cols
           )
 
-          sign_levl = st.sidebar.text_input("Choose Your Significant Level:")
-          if len(numeric_cols) == 0:
-            st.error("No numeric columns found.")
-            st.stop()
+          # Use number_input instead of text_input
+          sign_levl = st.sidebar.number_input(
+            "Choose Your Significance Level:",
+            min_value=0.001,
+            max_value=0.999,
+            value=0.05,
+            step=0.01,
+            format="%.3f"
+          )
 
-          if sign_levl == str():
-            st.warning("⚠️ Choose Significant Level and Press Enter Key to Proceed.")
-          else:
+          if st.sidebar.button("Run Homoscedasticity Analysis"):
+
             try:
-              if st.sidebar.button("Run Homoscedasticity Analysis"):
 
-                data = df4[[dependent, group]].dropna()
+              # Select only required columns
+              data = df4[[dependent, group]].copy()
 
-                groups = [
-                  g[dependent].values
-                  for _, g in data.groupby(group)
-                ]
+              # Convert dependent variable safely to numeric
+              data[dependent] = pd.to_numeric(
+                data[dependent],
+                errors="coerce"
+              )
 
-                if len(groups) < 2:
-                  st.error("Need at least two groups.")
-                  st.stop()
+              # Replace infinity with NaN
+              data[dependent] = data[dependent].replace(
+                [np.inf, -np.inf],
+                np.nan
+              )
 
-                # Levene Test
-                lev_stat, lev_p = levene(*groups)
+              # Remove missing values
+              data = data.dropna(
+                subset=[dependent, group]
+              )
 
-                # Bartlett Test
-                bart_stat, bart_p = bartlett(*groups)
-
-                # Fligner Test
-                flig_stat, flig_p = fligner(*groups)
-
-                results = pd.DataFrame({
-                  "Test":[
-                    "Levene",
-                    "Bartlett",
-                    "Fligner-Killeen"
-                  ],
-                  "Statistic":[
-                    lev_stat,
-                    bart_stat,
-                    flig_stat
-                  ],
-                  "P-value":[
-                    lev_p,
-                    bart_p,
-                    flig_p
-                  ]
-                })
-
-                st.subheader("Test Results")
-                st.dataframe(results)
-
-                st.subheader("🧾 Result Interpretation")
-
-                for i,row in results.iterrows():
-
-                  if row["P-value"] > float(sign_levl):
-                    st.success(
-                      f"{row['Test']}: Variances are equal (Fail to reject H₀)"
-                    )
-                  else:
-                    st.error(
-                      f"{row['Test']}: Variances are NOT equal (Reject H₀)"
-                    )
-
-                # Download Results
-
-                csv = results.to_csv(index=False)
-
-                st.download_button(
-                  label="Download Results CSV",
-                  data=csv,
-                  file_name="homoscedasticity_results.csv",
-                  mime="text/csv"
+              # Check if data is available
+              if data.empty:
+                st.error(
+                  "No valid data available after removing missing values."
                 )
+                st.stop()
+
+              # Create groups with at least 2 observations
+              groups = []
+
+              for group_name, group_data in data.groupby(group):
+
+                values = group_data[dependent].dropna().values
+
+                # Keep only groups with enough observations
+                if len(values) >= 2:
+                  groups.append(values)
+
+              # Check number of valid groups
+              if len(groups) < 2:
+                st.error(
+                  "At least two groups with valid observations are required."
+                )
+                st.stop()
+
+              # Additional check for valid numeric values
+              valid_groups = []
+
+              for values in groups:
+
+                values = np.asarray(values, dtype=float)
+
+                # Remove NaN and infinite values again for safety
+                values = values[np.isfinite(values)]
+
+                if len(values) >= 2:
+                  valid_groups.append(values)
+
+              groups = valid_groups
+
+              if len(groups) < 2:
+                st.error(
+                  "Not enough valid groups available for analysis."
+                )
+                st.stop()
+
+             
+              # Levene Test
+              lev_stat, lev_p = levene(*groups)
+
+              
+              # Bartlett Test
+              bart_stat, bart_p = bartlett(*groups)
+
+              
+              # Fligner-Killeen Test
+              flig_stat, flig_p = fligner(*groups)
+
+              # Create results table
+              results = pd.DataFrame({
+                "Test": [
+                  "Levene",
+                  "Bartlett",
+                  "Fligner-Killeen"
+                ],
+                "Statistic": [
+                  lev_stat,
+                  bart_stat,
+                  flig_stat
+                ],
+                "P-value": [
+                  lev_p,
+                  bart_p,
+                  flig_p
+                ]
+              })
+
+              st.subheader("Test Results")
+
+              st.dataframe(
+                results.style.format({
+                  "Statistic": "{:.4f}",
+                  "P-value": "{:.4f}"
+                })
+              )
+
+             
+              # Result Interpretation
+
+              st.subheader("🧾 Result Interpretation")
+
+              for _, row in results.iterrows():
+
+                # Check if p-value is valid
+                if pd.isna(row["P-value"]):
+                  st.warning(
+                    f"{row['Test']}: Unable to calculate a valid p-value."
+                  )
+
+                elif row["P-value"] > sign_levl:
+
+                  st.success(
+                    f"{row['Test']}: Variances are equal "
+                    f"(Fail to reject H₀ at α = {sign_levl})."
+                  )
+
+                else:
+
+                  st.error(
+                    f"{row['Test']}: Variances are NOT equal "
+                    f"(Reject H₀ at α = {sign_levl})."
+                  )
+
+              
+              # Download Results
+
+              csv = results.to_csv(
+                index=False
+              ).encode("utf-8")
+
+              st.download_button(
+                label="📥 Download Results CSV",
+                data=csv,
+                file_name="homoscedasticity_results.csv",
+                mime="text/csv"
+              )
+
             except Exception as e:
-              st.error(f"❌ An error occured: {e}") 
+
+              st.error(
+                f"❌ An error occurred: {str(e)}"
+              ) 
 
           # Multicollinearity Analysis 
         elif cr_option == 'Multicollinearity':
+          st.markdown(subsubtitle, unsafe_allow_html=True)
           st.header("📊 Multicollinearity Analysis")
           st.info("""
           This page calculates:
@@ -2096,14 +2235,18 @@ if st.session_state.started:
               else:
                 st.warning("Select at least two predictor variables.")
 
+
+
         # Circular Mean
       elif analy_option == 'Circular Mean':
         # hide subtitle
         st.markdown(subtitle, unsafe_allow_html=True)
+        st.markdown("<h4 class='subsubtitle'>This page allow you to calculate circular Mean. select circular Mean column and check ✅ on the calculate circular mean in the sidebar by the left of your device screen to begin.</h4>", unsafe_allow_html=True)
         # circular mean
         numeric_cols = df4.select_dtypes(include=['float64', 'int64']).columns.tolist()
         cir_m = st.sidebar.selectbox('Select Column For Circular Mean:', numeric_cols)
         if st.sidebar.checkbox(f'Calculate Circular Mean'):
+          st.markdown(subsubtitle, unsafe_allow_html=True)
           try:
             if st.sidebar.button("Run Circular Mean"):
               # calculate circular mean 
@@ -2127,11 +2270,13 @@ if st.session_state.started:
       elif analy_option == 'Time Series Analysis':
         # hide subtitle
         st.markdown(subtitle, unsafe_allow_html=True)
+        st.markdown("<h4 class='subsubtitle'>This page allow you to run Time Series Analysis. such as ARIMA AND SARIMA analysis. select option in the sidebar by the left of your device screen to begin.</h4>", unsafe_allow_html=True)
         ts = ['Selct Option','ARIMA', 'SARIMA']
         ts_option = st.sidebar.selectbox('Select T-S Analysis Option:', ts)
 
         # ARIMA
         if ts_option == 'ARIMA':
+          st.markdown(subsubtitle, unsafe_allow_html=True)
           # time series data 
           or_d = '''examaples of common ARIMA order (p,d,q):\n 
           \n"0 0 0" "1 0 0" "0 0 1" "0 1 0"  "0 1 1" "2 1 2" "5 1 0"'''
@@ -2163,6 +2308,7 @@ if st.session_state.started:
 
           # SARIMA
         elif ts_option == 'SARIMA':
+          st.markdown(subsubtitle, unsafe_allow_html=True)
           numeric_cols = df4.select_dtypes(include=['float64', 'int64']).columns.tolist()
           ts_data = st.sidebar.selectbox('Select Time Series Data:', numeric_cols)
           st.sidebar.subheader("Choose SARIMA Order (p,d,q)")
@@ -2199,11 +2345,13 @@ if st.session_state.started:
       elif analy_option == 'Survival Analysis':
         # hide subtitle
         st.markdown(subtitle, unsafe_allow_html=True)
+        st.markdown("<h4 class='subsubtitle'>This page allow you to run Survival Analysis. such as Proportional Hazard Regression (COX Model) and Suvivor Function Estimation (Kaplanmeier) analysis. Before carrying out this analysis, you have to recode your data to numeric values e.g yes = 1s and No = 0. select option in the sidebar by the left of your device screen to begin.</h4>", unsafe_allow_html=True)
         sa = ['Selct Option','Proportional Hazard Regression (COX Model)', 'Survivor Function Estimation (KaplanMeier)']
         sa_option = st.sidebar.selectbox('Select Survival Analysis Option:', sa)
         
         # Proportional Hazard Regression (COX Model)
         if sa_option == 'Proportional Hazard Regression (COX Model)':
+          st.markdown(subsubtitle, unsafe_allow_html=True)
           st.sidebar.info("❎ Recode your data to 0 and 1 or numbers to suit this analysis. e.g Yes=1 and No=0")
           # Proprtional harzards regression
           numeric_cols = df4.select_dtypes(include=['float64', 'int64']).columns.tolist()
@@ -2226,6 +2374,7 @@ if st.session_state.started:
 
           # Survivor Function Estimation (KaplanMeier)
         elif sa_option == 'Survivor Function Estimation (KaplanMeier)':
+          st.markdown(subsubtitle, unsafe_allow_html=True)
           st.sidebar.info("❎ Recode your data to 0 and 1 or numbers to suit this analysis. e.g Yes=1 and No=0")
           numeric_cols = df4.select_dtypes(include=['float64', 'int64']).columns.tolist()
           sf_endog = st.sidebar.selectbox('Select Time Variable (Duration):', numeric_cols)
@@ -2259,9 +2408,10 @@ if st.session_state.started:
     st.markdown(hide2, unsafe_allow_html=True)
     #title
     st.markdown("<h2 class='subtitle'>Create Visuals</h2>", unsafe_allow_html=True)
+    st.markdown("<h4 class='subtitle'>Upload your dataset in the siderbar by the left of your device screen to begin visual creation.</h4>", unsafe_allow_html=True)
 
     # upload file 
-    st.sidebar.subheader("📂 Upload CSV or Excel File to Create Visuals")
+    st.sidebar.subheader("📂 Upload File to Create Visuals")
     upload_file = st.sidebar.file_uploader("Upload a File", type=['csv', "xlsx"])
     
     # condition to upload file 
@@ -2279,20 +2429,27 @@ if st.session_state.started:
       visual_option = st.sidebar.selectbox("Visual option:", visual)
       # show dataset  
       if st.sidebar.checkbox("Show Dataset"):
+        st.markdown(subtitle, unsafe_allow_html=True)
         st.subheader('Your Dataset')
         st.write(df5)
+        st.write(f"Dataset Rows and Columns {df5.shape}")
       
       # Scatter Plot
       if visual_option == 'Scatter Plot':
         # hide subtitle
         st.markdown(subtitle, unsafe_allow_html=True)
         sc = st.sidebar.selectbox("Choose Scatter Plot Option:", ['Select Option','Normal Scatter Plot', 'Customize Scatter Plot'])
+        
+
+        import io
+
         if sc == 'Normal Scatter Plot':
           x = st.sidebar.selectbox("Select Column for X-axis:", df5.columns)
           y = st.sidebar.selectbox("Select Column for Y-axis:", df5.columns)
           x_lab = st.sidebar.text_input("Choose Label For X-axis:")
           y_lab = st.sidebar.text_input("Choose Label For Y-axis:")
           title = st.sidebar.text_input("Choose Title For The Plot:")
+
           if st.sidebar.button("Create Scatter Plot"):
             fig, ax = plt.subplots(figsize=(8,4))
             ax = sns.scatterplot(x= x, y= y, ax=ax, data=df5)
@@ -2308,7 +2465,53 @@ if st.session_state.started:
               plt.title("Normal Scatter Plot")
             else:
               plt.title(title)
+
+            # Store the figure so it survives reruns (e.g. download clicks)
+            st.session_state["scatter_fig"] = fig
+
+          # Render the plot + export buttons if a figure exists in session_state
+          if "scatter_fig" in st.session_state:
+            fig = st.session_state["scatter_fig"]
             st.pyplot(fig)
+
+            col1, col2, col3 = st.columns(3)
+
+            png_buf = io.BytesIO()
+            fig.savefig(png_buf, format="png", dpi=300, bbox_inches="tight")
+            png_buf.seek(0)
+            with col1:
+              st.download_button(
+                label="Download PNG",
+                data=png_buf,
+                file_name="scatter_plot.png",
+                mime="image/png",
+                key="scatter_png_dl"
+              )
+
+            pdf_buf = io.BytesIO()
+            fig.savefig(pdf_buf, format="pdf", bbox_inches="tight")
+            pdf_buf.seek(0)
+            with col2:
+              st.download_button(
+                label="Download PDF",
+                data=pdf_buf,
+                file_name="scatter_plot.pdf",
+                mime="application/pdf",
+                key="scatter_pdf_dl"
+              )
+
+            svg_buf = io.BytesIO()
+            fig.savefig(svg_buf, format="svg", bbox_inches="tight")
+            svg_buf.seek(0)
+            with col3:
+              st.download_button(
+                label="Download SVG",
+                data=svg_buf,
+                file_name="scatter_plot.svg",
+                mime="image/svg+xml",
+                key="scatter_svg_dl"
+              )
+        #
         elif sc == 'Customize Scatter Plot':
           x = st.sidebar.selectbox("Select Column for X-axis:", df5.columns)
           y = st.sidebar.selectbox("Select Column for Y-axis:", df5.columns)
@@ -2316,6 +2519,7 @@ if st.session_state.started:
           x_lab = st.sidebar.text_input("Choose Label For X-axis:")
           y_lab = st.sidebar.text_input("Choose Label For Y-axis:")
           title = st.sidebar.text_input("Choose Title For The Plot:")
+
           if st.sidebar.button("Customize Scatter Plot"):
             fig, ax = plt.subplots(figsize=(8,4))
             ax = sns.scatterplot(x= x, y= y, hue=hue, ax=ax, data=df5)
@@ -2331,19 +2535,66 @@ if st.session_state.started:
               plt.title("Customized Scatter Plot")
             else:
               plt.title(title)
+
+            # Store the figure so it survives reruns (e.g. download clicks)
+            st.session_state["custom_scatter_fig"] = fig
+
+          # Render the plot + export buttons if a figure exists in session_state
+          if "custom_scatter_fig" in st.session_state:
+            fig = st.session_state["custom_scatter_fig"]
             st.pyplot(fig)
+
+            col1, col2, col3 = st.columns(3)
+
+            png_buf = io.BytesIO()
+            fig.savefig(png_buf, format="png", dpi=300, bbox_inches="tight")
+            png_buf.seek(0)
+            with col1:
+              st.download_button(
+                label="Download PNG",
+                data=png_buf,
+                file_name="custom_scatter_plot.png",
+                mime="image/png",
+                key="custom_scatter_png_dl"
+              )
+
+            pdf_buf = io.BytesIO()
+            fig.savefig(pdf_buf, format="pdf", bbox_inches="tight")
+            pdf_buf.seek(0)
+            with col2:
+              st.download_button(
+                label="Download PDF",
+                data=pdf_buf,
+                file_name="custom_scatter_plot.pdf",
+                mime="application/pdf",
+                key="custom_scatter_pdf_dl"
+              )
+
+            svg_buf = io.BytesIO()
+            fig.savefig(svg_buf, format="svg", bbox_inches="tight")
+            svg_buf.seek(0)
+            with col3:
+              st.download_button(
+                label="Download SVG",
+                data=svg_buf,
+                file_name="custom_scatter_plot.svg",
+                mime="image/svg+xml",
+                key="custom_scatter_svg_dl"
+              )
 
         # Line Plot 
       elif visual_option == 'Line Plot':
         # hide subtitle
         st.markdown(subtitle, unsafe_allow_html=True)
         lp = st.sidebar.selectbox("Choose Line Plot Option:", ['Select Option','Normal Line Plot', 'Customize Line Plot'])
+        #
         if lp == 'Normal Line Plot':
           x = st.sidebar.selectbox("Select Column for X-axis:", df5.columns)
           y = st.sidebar.selectbox("Select Column for Y-axis:", df5.columns)
           x_lab = st.sidebar.text_input("Choose Label For X-axis:")
           y_lab = st.sidebar.text_input("Choose Label For Y-axis:")
           title = st.sidebar.text_input("Choose Title For The Plot:")
+
           if st.sidebar.button("Create Line Plot"):
             fig, ax = plt.subplots(figsize=(8,4))
             ax = sns.lineplot(x= x, y= y, ax=ax, data=df5)
@@ -2359,7 +2610,53 @@ if st.session_state.started:
               plt.title("Normal Line Plot")
             else:
               plt.title(title)
+
+            # Store the figure so it survives reruns (e.g. download clicks)
+            st.session_state["line_fig"] = fig
+
+          # Render the plot + export buttons if a figure exists in session_state
+          if "line_fig" in st.session_state:
+            fig = st.session_state["line_fig"]
             st.pyplot(fig)
+
+            col1, col2, col3 = st.columns(3)
+
+            png_buf = io.BytesIO()
+            fig.savefig(png_buf, format="png", dpi=300, bbox_inches="tight")
+            png_buf.seek(0)
+            with col1:
+              st.download_button(
+                label="Download PNG",
+                data=png_buf,
+                file_name="line_plot.png",
+                mime="image/png",
+                key="line_png_dl"
+              )
+
+            pdf_buf = io.BytesIO()
+            fig.savefig(pdf_buf, format="pdf", bbox_inches="tight")
+            pdf_buf.seek(0)
+            with col2:
+              st.download_button(
+                label="Download PDF",
+                data=pdf_buf,
+                file_name="line_plot.pdf",
+                mime="application/pdf",
+                key="line_pdf_dl"
+              )
+
+            svg_buf = io.BytesIO()
+            fig.savefig(svg_buf, format="svg", bbox_inches="tight")
+            svg_buf.seek(0)
+            with col3:
+              st.download_button(
+                label="Download SVG",
+                data=svg_buf,
+                file_name="line_plot.svg",
+                mime="image/svg+xml",
+                key="line_svg_dl"
+              )
+
         elif lp == 'Customize Line Plot':
           x = st.sidebar.selectbox("Select Column for X-axis:", df5.columns)
           y = st.sidebar.selectbox("Select Column for Y-axis:", df5.columns)
@@ -2368,6 +2665,7 @@ if st.session_state.started:
           x_lab = st.sidebar.text_input("Choose Label For X-axis:")
           y_lab = st.sidebar.text_input("Choose Label For Y-axis:")
           title = st.sidebar.text_input("Choose Title For The Plot:")
+
           if st.sidebar.button("Customize Line Plot"):
             fig, ax = plt.subplots(figsize=(8,4))
             ax = sns.lineplot(x= x, y= y, hue=hue, style= style, markers=True, dashes=False ,data=df5)
@@ -2383,7 +2681,52 @@ if st.session_state.started:
               plt.title("Customized Line Plot")
             else:
               plt.title(title)
+
+            # Store the figure so it survives reruns (e.g. download clicks)
+            st.session_state["custom_line_fig"] = fig
+
+          # Render the plot + export buttons if a figure exists in session_state
+          if "custom_line_fig" in st.session_state:
+            fig = st.session_state["custom_line_fig"]
             st.pyplot(fig)
+
+            col1, col2, col3 = st.columns(3)
+
+            png_buf = io.BytesIO()
+            fig.savefig(png_buf, format="png", dpi=300, bbox_inches="tight")
+            png_buf.seek(0)
+            with col1:
+              st.download_button(
+                label="Download PNG",
+                data=png_buf,
+                file_name="custom_line_plot.png",
+                mime="image/png",
+                key="custom_line_png_dl"
+              )
+
+            pdf_buf = io.BytesIO()
+            fig.savefig(pdf_buf, format="pdf", bbox_inches="tight")
+            pdf_buf.seek(0)
+            with col2:
+              st.download_button(
+                label="Download PDF",
+                data=pdf_buf,
+                file_name="custom_line_plot.pdf",
+                mime="application/pdf",
+                key="custom_line_pdf_dl"
+              )
+
+            svg_buf = io.BytesIO()
+            fig.savefig(svg_buf, format="svg", bbox_inches="tight")
+            svg_buf.seek(0)
+            with col3:
+              st.download_button(
+                label="Download SVG",
+                data=svg_buf,
+                file_name="custom_line_plot.svg",
+                mime="image/svg+xml",
+                key="custom_line_svg_dl"
+              )
 
 
         # Bar plot 
@@ -2399,6 +2742,7 @@ if st.session_state.started:
           title = st.sidebar.text_input("Choose Title For The Plot:")
           lab = st.sidebar.checkbox("Add Data Label")
           color = st.sidebar.color_picker("Choose Color For Bar Chart:")
+
           if st.sidebar.button("Create Bar Plot"):
             fig, ax = plt.subplots(figsize=(8,4))
             ax = sns.barplot(x= x, y= y, ax=ax, errorbar=None, data=df5, color=color)
@@ -2416,7 +2760,52 @@ if st.session_state.started:
               plt.title(title)
             if lab:
               ax.bar_label(ax.containers[0])
+
+            # Store the figure so it survives reruns (e.g. download clicks)
+            st.session_state["bar_fig"] = fig
+
+          # Render the plot + export buttons if a figure exists in session_state
+          if "bar_fig" in st.session_state:
+            fig = st.session_state["bar_fig"]
             st.pyplot(fig)
+
+            col1, col2, col3 = st.columns(3)
+
+            png_buf = io.BytesIO()
+            fig.savefig(png_buf, format="png", dpi=300, bbox_inches="tight")
+            png_buf.seek(0)
+            with col1:
+              st.download_button(
+                label="Download PNG",
+                data=png_buf,
+                file_name="bar_plot.png",
+                mime="image/png",
+                key="bar_png_dl"
+              )
+
+            pdf_buf = io.BytesIO()
+            fig.savefig(pdf_buf, format="pdf", bbox_inches="tight")
+            pdf_buf.seek(0)
+            with col2:
+              st.download_button(
+                label="Download PDF",
+                data=pdf_buf,
+                file_name="bar_plot.pdf",
+                mime="application/pdf",
+                key="bar_pdf_dl"
+              )
+
+            svg_buf = io.BytesIO()
+            fig.savefig(svg_buf, format="svg", bbox_inches="tight")
+            svg_buf.seek(0)
+            with col3:
+              st.download_button(
+                label="Download SVG",
+                data=svg_buf,
+                file_name="bar_plot.svg",
+                mime="image/svg+xml",
+                key="bar_svg_dl"
+              )
         elif lp == 'Customize Bar Plot':
           x = st.sidebar.selectbox("Select Column for X-axis:", df5.columns)
           y = st.sidebar.selectbox("Select Column for Y-axis:", df5.columns)
@@ -2425,6 +2814,7 @@ if st.session_state.started:
           y_lab = st.sidebar.text_input("Choose Label For Y-axis:")
           title = st.sidebar.text_input("Choose Title For The Plot:")
           lab = st.sidebar.checkbox("Add Data Label")
+
           if st.sidebar.button("Customize Bar Plot"):
             fig, ax = plt.subplots(figsize=(8,4))
             ax = sns.barplot(x=x, y=y,hue=hue,estimator="mean", errorbar=None, data=df5)
@@ -2443,7 +2833,52 @@ if st.session_state.started:
             if lab:
               for con in ax.containers:
                 ax.bar_label(con)
+
+            # Store the figure so it survives reruns (e.g. download clicks)
+            st.session_state["custom_bar_fig"] = fig
+
+          # Render the plot + export buttons if a figure exists in session_state
+          if "custom_bar_fig" in st.session_state:
+            fig = st.session_state["custom_bar_fig"]
             st.pyplot(fig)
+
+            col1, col2, col3 = st.columns(3)
+
+            png_buf = io.BytesIO()
+            fig.savefig(png_buf, format="png", dpi=300, bbox_inches="tight")
+            png_buf.seek(0)
+            with col1:
+              st.download_button(
+                label="Download PNG",
+                data=png_buf,
+                file_name="custom_bar_plot.png",
+                mime="image/png",
+                key="custom_bar_png_dl"
+              )
+
+            pdf_buf = io.BytesIO()
+            fig.savefig(pdf_buf, format="pdf", bbox_inches="tight")
+            pdf_buf.seek(0)
+            with col2:
+              st.download_button(
+                label="Download PDF",
+                data=pdf_buf,
+                file_name="custom_bar_plot.pdf",
+                mime="application/pdf",
+                key="custom_bar_pdf_dl"
+              )
+
+            svg_buf = io.BytesIO()
+            fig.savefig(svg_buf, format="svg", bbox_inches="tight")
+            svg_buf.seek(0)
+            with col3:
+              st.download_button(
+                label="Download SVG",
+                data=svg_buf,
+                file_name="custom_bar_plot.svg",
+                mime="image/svg+xml",
+                key="custom_bar_svg_dl"
+              )
 
         # Histogram
       elif visual_option == 'Histogram':
@@ -2455,6 +2890,7 @@ if st.session_state.started:
           x_lab = st.sidebar.text_input("Choose Label For X-axis:")
           title = st.sidebar.text_input("Choose Title For The Plot:")
           lab = st.sidebar.checkbox("Add Data Label")
+
           if st.sidebar.button("Create Histogram"):
             fig, ax = plt.subplots(figsize=(8,4))
             ax = sns.histplot(x= x, ax=ax, data=df5)
@@ -2468,13 +2904,60 @@ if st.session_state.started:
               plt.title(title)
             if lab:
               ax.bar_label(ax.containers[0])
+
+            # Store the figure so it survives reruns (e.g. download clicks)
+            st.session_state["hist_fig"] = fig
+
+          # Render the plot + export buttons if a figure exists in session_state
+          if "hist_fig" in st.session_state:
+            fig = st.session_state["hist_fig"]
             st.pyplot(fig)
+
+            col1, col2, col3 = st.columns(3)
+
+            png_buf = io.BytesIO()
+            fig.savefig(png_buf, format="png", dpi=300, bbox_inches="tight")
+            png_buf.seek(0)
+            with col1:
+              st.download_button(
+                label="Download PNG",
+                data=png_buf,
+                file_name="histogram.png",
+                mime="image/png",
+                key="hist_png_dl"
+              )
+
+            pdf_buf = io.BytesIO()
+            fig.savefig(pdf_buf, format="pdf", bbox_inches="tight")
+            pdf_buf.seek(0)
+            with col2:
+              st.download_button(
+                label="Download PDF",
+                data=pdf_buf,
+                file_name="histogram.pdf",
+                mime="application/pdf",
+                key="hist_pdf_dl"
+              )
+
+            svg_buf = io.BytesIO()
+            fig.savefig(svg_buf, format="svg", bbox_inches="tight")
+            svg_buf.seek(0)
+            with col3:
+              st.download_button(
+                label="Download SVG",
+                data=svg_buf,
+                file_name="histogram.svg",
+                mime="image/svg+xml",
+                key="hist_svg_dl"
+              )
+
         elif hist == 'Customize Histogram':
           x = st.sidebar.selectbox("Select Column for X-axis:", df5.columns)
           x_lab = st.sidebar.text_input("Choose Label For X-axis:")
           title = st.sidebar.text_input("Choose Title For The Plot:")
           lab = st.sidebar.checkbox("Add Data Label")
           color = st.sidebar.color_picker("Choose Color For Histogram:")
+
           if st.sidebar.button("Customize Histogram"):
             fig, ax = plt.subplots(figsize=(8,4))
             ax = sns.histplot(data=df5, x=x, bins=20, kde=True, color=color)
@@ -2488,7 +2971,52 @@ if st.session_state.started:
               plt.title(title)
             if lab:
               ax.bar_label(ax.containers[0])
+
+            # Store the figure so it survives reruns (e.g. download clicks)
+            st.session_state["custom_hist_fig"] = fig
+
+          # Render the plot + export buttons if a figure exists in session_state
+          if "custom_hist_fig" in st.session_state:
+            fig = st.session_state["custom_hist_fig"]
             st.pyplot(fig)
+
+            col1, col2, col3 = st.columns(3)
+
+            png_buf = io.BytesIO()
+            fig.savefig(png_buf, format="png", dpi=300, bbox_inches="tight")
+            png_buf.seek(0)
+            with col1:
+              st.download_button(
+                label="Download PNG",
+                data=png_buf,
+                file_name="custom_histogram.png",
+                mime="image/png",
+                key="custom_hist_png_dl"
+              )
+
+            pdf_buf = io.BytesIO()
+            fig.savefig(pdf_buf, format="pdf", bbox_inches="tight")
+            pdf_buf.seek(0)
+            with col2:
+              st.download_button(
+                label="Download PDF",
+                data=pdf_buf,
+                file_name="custom_histogram.pdf",
+                mime="application/pdf",
+                key="custom_hist_pdf_dl"
+              )
+
+            svg_buf = io.BytesIO()
+            fig.savefig(svg_buf, format="svg", bbox_inches="tight")
+            svg_buf.seek(0)
+            with col3:
+              st.download_button(
+                label="Download SVG",
+                data=svg_buf,
+                file_name="custom_histogram.svg",
+                mime="image/svg+xml",
+                key="custom_hist_svg_dl"
+              )
 
         # Density Plot
       elif visual_option == 'Density Plot':
@@ -2500,6 +3028,7 @@ if st.session_state.started:
           x = st.sidebar.selectbox("Select Column for X-axis:", numeric_cols)
           x_lab = st.sidebar.text_input("Choose Label For X-axis:")
           title = st.sidebar.text_input("Choose Title For The Plot:")
+
           if st.sidebar.button("Create Density"):
             fig, ax = plt.subplots(figsize=(8,4))
             ax = sns.kdeplot(x= x, ax=ax, data=df5)
@@ -2511,13 +3040,59 @@ if st.session_state.started:
               plt.title("Normal Density")
             else:
               plt.title(title)
+
+            # Store the figure so it survives reruns (e.g. download clicks)
+            st.session_state["density_fig"] = fig
+
+          # Render the plot + export buttons if a figure exists in session_state
+          if "density_fig" in st.session_state:
+            fig = st.session_state["density_fig"]
             st.pyplot(fig)
+
+            col1, col2, col3 = st.columns(3)
+
+            png_buf = io.BytesIO()
+            fig.savefig(png_buf, format="png", dpi=300, bbox_inches="tight")
+            png_buf.seek(0)
+            with col1:
+              st.download_button(
+                label="Download PNG",
+                data=png_buf,
+                file_name="density_plot.png",
+                mime="image/png",
+                key="density_png_dl"
+              )
+
+            pdf_buf = io.BytesIO()
+            fig.savefig(pdf_buf, format="pdf", bbox_inches="tight")
+            pdf_buf.seek(0)
+            with col2:
+              st.download_button(
+                label="Download PDF",
+                data=pdf_buf,
+                file_name="density_plot.pdf",
+                mime="application/pdf",
+                key="density_pdf_dl"
+              )
+
+            svg_buf = io.BytesIO()
+            fig.savefig(svg_buf, format="svg", bbox_inches="tight")
+            svg_buf.seek(0)
+            with col3:
+              st.download_button(
+                label="Download SVG",
+                data=svg_buf,
+                file_name="density_plot.svg",
+                mime="image/svg+xml",
+                key="density_svg_dl"
+              )
         elif den == 'Customize Density Plot':
           numeric_cols = df5.select_dtypes(include=['float64', 'int64', 'datetime64']).columns.tolist()
           x = st.sidebar.selectbox("Select Column for X-axis:", numeric_cols)
           hue = st.sidebar.selectbox("Select Column for Hue:", df5.columns)
           x_lab = st.sidebar.text_input("Choose Label For X-axis:")
           title = st.sidebar.text_input("Choose Title For The Plot:")
+
           if st.sidebar.button("Customize Density"):
             fig, ax = plt.subplots(figsize=(8,4))
             ax = sns.kdeplot(data=df5, x=x, hue=hue, fill=True, alpha=0.6, linewidth=1.5)
@@ -2529,7 +3104,52 @@ if st.session_state.started:
               plt.title("Customize Histogram")
             else:
               plt.title(title)
+
+            # Store the figure so it survives reruns (e.g. download clicks)
+            st.session_state["custom_density_fig"] = fig
+
+          # Render the plot + export buttons if a figure exists in session_state
+          if "custom_density_fig" in st.session_state:
+            fig = st.session_state["custom_density_fig"]
             st.pyplot(fig)
+
+            col1, col2, col3 = st.columns(3)
+
+            png_buf = io.BytesIO()
+            fig.savefig(png_buf, format="png", dpi=300, bbox_inches="tight")
+            png_buf.seek(0)
+            with col1:
+              st.download_button(
+                label="Download PNG",
+                data=png_buf,
+                file_name="custom_density_plot.png",
+                mime="image/png",
+                key="custom_density_png_dl"
+              )
+
+            pdf_buf = io.BytesIO()
+            fig.savefig(pdf_buf, format="pdf", bbox_inches="tight")
+            pdf_buf.seek(0)
+            with col2:
+              st.download_button(
+                label="Download PDF",
+                data=pdf_buf,
+                file_name="custom_density_plot.pdf",
+                mime="application/pdf",
+                key="custom_density_pdf_dl"
+              )
+
+            svg_buf = io.BytesIO()
+            fig.savefig(svg_buf, format="svg", bbox_inches="tight")
+            svg_buf.seek(0)
+            with col3:
+              st.download_button(
+                label="Download SVG",
+                data=svg_buf,
+                file_name="custom_density_plot.svg",
+                mime="image/svg+xml",
+                key="custom_density_svg_dl"
+              )
 
         # Box Plot
       elif visual_option == 'Box Plot':
@@ -2557,7 +3177,52 @@ if st.session_state.started:
               plt.title("Normal Box Plot")
             else:
               plt.title(title)
+
+            # Store the figure so it survives reruns (e.g. download clicks)
+            st.session_state["box_fig"] = fig
+
+          # Render the plot + export buttons if a figure exists in session_state
+          if "box_fig" in st.session_state:
+            fig = st.session_state["box_fig"]
             st.pyplot(fig)
+
+            col1, col2, col3 = st.columns(3)
+
+            png_buf = io.BytesIO()
+            fig.savefig(png_buf, format="png", dpi=300, bbox_inches="tight")
+            png_buf.seek(0)
+            with col1:
+              st.download_button(
+                label="Download PNG",
+                data=png_buf,
+                file_name="box_plot.png",
+                mime="image/png",
+                key="box_png_dl"
+              )
+
+            pdf_buf = io.BytesIO()
+            fig.savefig(pdf_buf, format="pdf", bbox_inches="tight")
+            pdf_buf.seek(0)
+            with col2:
+              st.download_button(
+                label="Download PDF",
+                data=pdf_buf,
+                file_name="box_plot.pdf",
+                mime="application/pdf",
+                key="box_pdf_dl"
+              )
+
+            svg_buf = io.BytesIO()
+            fig.savefig(svg_buf, format="svg", bbox_inches="tight")
+            svg_buf.seek(0)
+            with col3:
+              st.download_button(
+                label="Download SVG",
+                data=svg_buf,
+                file_name="box_plot.svg",
+                mime="image/svg+xml",
+                key="box_svg_dl"
+              )
         elif box == 'Customize Box Plot':
           x = st.sidebar.selectbox("Select Column for X-axis:", df5.columns)
           y = st.sidebar.selectbox("Select Column for Y-axis:", df5.columns)
@@ -2565,6 +3230,7 @@ if st.session_state.started:
           x_lab = st.sidebar.text_input("Choose Label For X-axis:")
           y_lab = st.sidebar.text_input("Choose Label For Y-axis:")
           title = st.sidebar.text_input("Choose Title For The Plot:")
+
           if st.sidebar.button("Customize Box Plot"):
             fig, ax = plt.subplots(figsize=(8,4))
             ax = sns.boxplot( x=x, y=y,hue=hue, linewidth=1.5, palette="Set3", fliersize=4, data=df5)
@@ -2580,7 +3246,52 @@ if st.session_state.started:
               plt.title("Customized Box Plot")
             else:
               plt.title(title)
+
+            # Store the figure so it survives reruns (e.g. download clicks)
+            st.session_state["custom_box_fig"] = fig
+
+          # Render the plot + export buttons if a figure exists in session_state
+          if "custom_box_fig" in st.session_state:
+            fig = st.session_state["custom_box_fig"]
             st.pyplot(fig)
+
+            col1, col2, col3 = st.columns(3)
+
+            png_buf = io.BytesIO()
+            fig.savefig(png_buf, format="png", dpi=300, bbox_inches="tight")
+            png_buf.seek(0)
+            with col1:
+              st.download_button(
+                label="Download PNG",
+                data=png_buf,
+                file_name="custom_box_plot.png",
+                mime="image/png",
+                key="custom_box_png_dl"
+              )
+
+            pdf_buf = io.BytesIO()
+            fig.savefig(pdf_buf, format="pdf", bbox_inches="tight")
+            pdf_buf.seek(0)
+            with col2:
+              st.download_button(
+                label="Download PDF",
+                data=pdf_buf,
+                file_name="custom_box_plot.pdf",
+                mime="application/pdf",
+                key="custom_box_pdf_dl"
+              )
+
+            svg_buf = io.BytesIO()
+            fig.savefig(svg_buf, format="svg", bbox_inches="tight")
+            svg_buf.seek(0)
+            with col3:
+              st.download_button(
+                label="Download SVG",
+                data=svg_buf,
+                file_name="custom_box_plot.svg",
+                mime="image/svg+xml",
+                key="custom_box_svg_dl"
+              )
 
         # Violin Plot
       elif visual_option == 'Violin Plot':
@@ -2591,6 +3302,7 @@ if st.session_state.started:
         x_lab = st.sidebar.text_input("Choose Label For X-axis:")
         y_lab = st.sidebar.text_input("Choose Label For Y-axis:")
         title = st.sidebar.text_input("Choose Title For The Plot:")
+
         if st.sidebar.button("Create Violin Plot"):
           fig, ax = plt.subplots(figsize=(8,4))
           ax = sns.violinplot(x= x, y= y, ax=ax, data=df5)
@@ -2606,7 +3318,52 @@ if st.session_state.started:
             plt.title("Violin Plot")
           else:
             plt.title(title)
+
+          # Store the figure so it survives reruns (e.g. download clicks)
+          st.session_state["violin_fig"] = fig
+
+        # Render the plot + export buttons if a figure exists in session_state
+        if "violin_fig" in st.session_state:
+          fig = st.session_state["violin_fig"]
           st.pyplot(fig)
+
+          col1, col2, col3 = st.columns(3)
+
+          png_buf = io.BytesIO()
+          fig.savefig(png_buf, format="png", dpi=300, bbox_inches="tight")
+          png_buf.seek(0)
+          with col1:
+            st.download_button(
+              label="Download PNG",
+              data=png_buf,
+              file_name="violin_plot.png",
+              mime="image/png",
+              key="violin_png_dl"
+            )
+
+          pdf_buf = io.BytesIO()
+          fig.savefig(pdf_buf, format="pdf", bbox_inches="tight")
+          pdf_buf.seek(0)
+          with col2:
+            st.download_button(
+              label="Download PDF",
+              data=pdf_buf,
+              file_name="violin_plot.pdf",
+              mime="application/pdf",
+              key="violin_pdf_dl"
+            )
+
+          svg_buf = io.BytesIO()
+          fig.savefig(svg_buf, format="svg", bbox_inches="tight")
+          svg_buf.seek(0)
+          with col3:
+            st.download_button(
+              label="Download SVG",
+              data=svg_buf,
+              file_name="violin_plot.svg",
+              mime="image/svg+xml",
+              key="violin_svg_dl"
+            )
 
         # Heatmap
       elif visual_option == 'Heatmap':
@@ -2617,7 +3374,52 @@ if st.session_state.started:
             fig, ax = plt.subplots(figsize=(8,4))
             corr = df5.corr(numeric_only=True)
             ax = sns.heatmap(corr)
+
+            # Store the figure so it survives reruns (e.g. download clicks)
+            st.session_state["heatmap_fig"] = fig
+
+          # Render the plot + export buttons if a figure exists in session_state
+          if "heatmap_fig" in st.session_state:
+            fig = st.session_state["heatmap_fig"]
             st.pyplot(fig)
+
+            col1, col2, col3 = st.columns(3)
+
+            png_buf = io.BytesIO()
+            fig.savefig(png_buf, format="png", dpi=300, bbox_inches="tight")
+            png_buf.seek(0)
+            with col1:
+              st.download_button(
+                label="Download PNG",
+                data=png_buf,
+                file_name="heatmap.png",
+                mime="image/png",
+                key="heatmap_png_dl"
+              )
+
+            pdf_buf = io.BytesIO()
+            fig.savefig(pdf_buf, format="pdf", bbox_inches="tight")
+            pdf_buf.seek(0)
+            with col2:
+              st.download_button(
+                label="Download PDF",
+                data=pdf_buf,
+                file_name="heatmap.pdf",
+                mime="application/pdf",
+                key="heatmap_pdf_dl"
+              )
+
+            svg_buf = io.BytesIO()
+            fig.savefig(svg_buf, format="svg", bbox_inches="tight")
+            svg_buf.seek(0)
+            with col3:
+              st.download_button(
+                label="Download SVG",
+                data=svg_buf,
+                file_name="heatmap.svg",
+                mime="image/svg+xml",
+                key="heatmap_svg_dl"
+              )
 
         # join plot 
       elif visual_option == 'Joint Plot':
@@ -2628,9 +3430,11 @@ if st.session_state.started:
         x_lab = st.sidebar.text_input("Choose Label For X-axis:")
         y_lab = st.sidebar.text_input("Choose Label For Y-axis:")
         title = st.sidebar.text_input("Choose Title For The Plot:")
+
         if st.sidebar.button("Create Joint Plot"):
-          fig, ax = plt.subplots(figsize=(8,4))
-          ax = sns.jointplot( x=x, y=y, ax=ax, data=df5)
+          g = sns.jointplot(x=x, y=y, data=df5)
+          if x_lab == str():
+            g.set_axis_labels(x, y_lab if y_lab else y)
           if x_lab == str():
             plt.xlabel(x)
           else:
@@ -2640,10 +3444,58 @@ if st.session_state.started:
           else:
             plt.ylabel(y_lab)
           if title == str():
-            plt.title("Joint Plot")
+            g.fig.suptitle("Joint Plot")
           else:
-            plt.title(title)
-          st.pyplot(ax)
+            g.fig.suptitle(title)
+
+          # jointplot returns a JointGrid, not a Figure/Axes — grab the underlying Figure
+          fig = g.fig
+
+          # Store the figure so it survives reruns (e.g. download clicks)
+          st.session_state["joint_fig"] = fig
+
+        # Render the plot + export buttons if a figure exists in session_state
+        if "joint_fig" in st.session_state:
+          fig = st.session_state["joint_fig"]
+          st.pyplot(fig)
+
+          col1, col2, col3 = st.columns(3)
+
+          png_buf = io.BytesIO()
+          fig.savefig(png_buf, format="png", dpi=300, bbox_inches="tight")
+          png_buf.seek(0)
+          with col1:
+            st.download_button(
+              label="Download PNG",
+              data=png_buf,
+              file_name="joint_plot.png",
+              mime="image/png",
+              key="joint_png_dl"
+            )
+
+          pdf_buf = io.BytesIO()
+          fig.savefig(pdf_buf, format="pdf", bbox_inches="tight")
+          pdf_buf.seek(0)
+          with col2:
+            st.download_button(
+              label="Download PDF",
+              data=pdf_buf,
+              file_name="joint_plot.pdf",
+              mime="application/pdf",
+              key="joint_pdf_dl"
+            )
+
+          svg_buf = io.BytesIO()
+          fig.savefig(svg_buf, format="svg", bbox_inches="tight")
+          svg_buf.seek(0)
+          with col3:
+            st.download_button(
+              label="Download SVG",
+              data=svg_buf,
+              file_name="joint_plot.svg",
+              mime="image/svg+xml",
+              key="joint_svg_dl"
+            )
 
         # Fecet Grid
       elif visual_option == 'Fecet Grid':
@@ -2651,12 +3503,60 @@ if st.session_state.started:
         st.markdown(subtitle, unsafe_allow_html=True)
         x = st.sidebar.selectbox("Select Grid Column:", df5.columns)
         y = st.sidebar.selectbox("Select Column for Histogram:", df5.columns)
+
         if st.sidebar.button("Create Fecet Grid"):
-          fig, ax = plt.subplots(figsize=(8,4))
-          ax = fecet= sns.FacetGrid(df5, col=x)
-          # histogram 
-          fecet.map(sns.histplot, y)
-          st.pyplot(ax)
+          facet = sns.FacetGrid(df5, col=x)
+          # histogram
+          facet.map(sns.histplot, y)
+
+          # FacetGrid returns a FacetGrid, not a Figure/Axes — grab the underlying Figure
+          fig = facet.fig
+
+          # Store the figure so it survives reruns (e.g. download clicks)
+          st.session_state["facet_fig"] = fig
+
+        # Render the plot + export buttons if a figure exists in session_state
+        if "facet_fig" in st.session_state:
+          fig = st.session_state["facet_fig"]
+          st.pyplot(fig)
+
+          col1, col2, col3 = st.columns(3)
+
+          png_buf = io.BytesIO()
+          fig.savefig(png_buf, format="png", dpi=300, bbox_inches="tight")
+          png_buf.seek(0)
+          with col1:
+            st.download_button(
+              label="Download PNG",
+              data=png_buf,
+              file_name="facet_grid.png",
+              mime="image/png",
+              key="facet_png_dl"
+            )
+
+          pdf_buf = io.BytesIO()
+          fig.savefig(pdf_buf, format="pdf", bbox_inches="tight")
+          pdf_buf.seek(0)
+          with col2:
+            st.download_button(
+              label="Download PDF",
+              data=pdf_buf,
+              file_name="facet_grid.pdf",
+              mime="application/pdf",
+              key="facet_pdf_dl"
+            )
+
+          svg_buf = io.BytesIO()
+          fig.savefig(svg_buf, format="svg", bbox_inches="tight")
+          svg_buf.seek(0)
+          with col3:
+            st.download_button(
+              label="Download SVG",
+              data=svg_buf,
+              file_name="facet_grid.svg",
+              mime="image/svg+xml",
+              key="facet_svg_dl"
+            )
 
         # pie chart 
       elif visual_option == 'Pie Chart':
@@ -2664,6 +3564,7 @@ if st.session_state.started:
         st.markdown(subtitle, unsafe_allow_html=True)
         y = st.sidebar.selectbox("Select Column For Pie Chart:", df5.columns)
         title = st.sidebar.text_input("Choose Title For The Plot:")
+
         if st.sidebar.button("Create Pie Chart"):
           y2 = df5[y].value_counts()
           fig, ax = plt.subplots(figsize=(8,4))
@@ -2673,111 +3574,190 @@ if st.session_state.started:
             plt.title("Pie chart")
           else:
             plt.title(title)
+
+          # Store the figure so it survives reruns (e.g. download clicks)
+          st.session_state["pie_fig"] = fig
+
+        # Render the plot + export buttons if a figure exists in session_state
+        if "pie_fig" in st.session_state:
+          fig = st.session_state["pie_fig"]
           st.pyplot(fig)
 
-    # web scrapping
+          col1, col2, col3 = st.columns(3)
+
+          png_buf = io.BytesIO()
+          fig.savefig(png_buf, format="png", dpi=300, bbox_inches="tight")
+          png_buf.seek(0)
+          with col1:
+            st.download_button(
+              label="Download PNG",
+              data=png_buf,
+              file_name="pie_chart.png",
+              mime="image/png",
+              key="pie_png_dl"
+            )
+
+          pdf_buf = io.BytesIO()
+          fig.savefig(pdf_buf, format="pdf", bbox_inches="tight")
+          pdf_buf.seek(0)
+          with col2:
+            st.download_button(
+              label="Download PDF",
+              data=pdf_buf,
+              file_name="pie_chart.pdf",
+              mime="application/pdf",
+              key="pie_pdf_dl"
+            )
+
+          svg_buf = io.BytesIO()
+          fig.savefig(svg_buf, format="svg", bbox_inches="tight")
+          svg_buf.seek(0)
+          with col3:
+            st.download_button(
+              label="Download SVG",
+              data=svg_buf,
+              file_name="pie_chart.svg",
+              mime="image/svg+xml",
+              key="pie_svg_dl"
+            )
+
+
+    # web scrapping 
   elif select_menu == 'Get Data & Others from Web':
+    # Hide menu 
     st.markdown(hide2, unsafe_allow_html=True)
-    st.subheader("Get Data and Other Items From Webpages")
-    st.info("This helps you get data, images, links and other items from webpage. All you need to do is to paste a copied of your website/webpage link or url and load it.")
+    st.subheader("Get Data and Other Elements from Webpage")
+    st.write("Data tables and other elements from any webpage.")
 
-    url = st.text_input("Enter Website URL")
+    url = st.text_input("Enter Website URL", placeholder="example.com or https://example.com")
 
-    if st.button("Load Webpage"):
-  
+    if st.button("Load Website"):
+
+      url = url.strip()
+
       if not url:
-        st.warning("Please enter a webpage URL.")
+        st.warning("Please enter a website URL.")
 
       else:
+        # Normalize URL: add a scheme if the user left it off
+        parsed = urlparse(url)
+        if not parsed.scheme:
+          url = "https://" + url
+
+        # Clear any stale data from a previous load before trying again
+        st.session_state.pop("tables", None)
+        st.session_state.pop("soup", None)
+        st.session_state.pop("base_url", None)
+
         try:
           headers = {
-            "User-Agent": "Mozilla/5.0"
+            "User-Agent": (
+              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+              "AppleWebKit/537.36 (KHTML, like Gecko) "
+              "Chrome/124.0.0.0 Safari/537.36"
+            )
           }
 
-          response = requests.get(url, headers=headers, timeout=30)
-          response.raise_for_status()
+          with st.spinner("Fetching page..."):
+            response = requests.get(url, headers=headers, timeout=30)
+            response.raise_for_status()
 
           html = response.text
           soup = BeautifulSoup(html, "lxml")
 
-  
+          # -------------------------
           # Load HTML Tables
+          # -------------------------
           try:
-            tables = pd.read_html(html)
-          except ValueError:
+            tables = pd.read_html(StringIO(html), flavor="lxml")
+          except (ValueError, ImportError):
             tables = []
 
           st.session_state.tables = tables
           st.session_state.soup = soup
+          st.session_state.base_url = url
 
-          st.success("Webpage loaded successfully!")
+          st.success("Website loaded successfully!")
 
+        except requests.exceptions.RequestException as e:
+          st.error(f"Could not fetch the page: {e}")
         except Exception as e:
-          st.error(f"Error: {e}")
+          st.error(f"Something went wrong: {e}")
 
-
+    # ==========================
     # TABLE SECTION
+    # ==========================
+
     if "tables" in st.session_state:
 
       tables = st.session_state.tables
 
       if len(tables) > 0:
 
-        st.header("WebPage Data")
+        st.header("Data Tables")
 
         table_names = [
-          f"Data {i+1} ({len(df)} rows × {len(df.columns)} columns)"
+          f"Table {i + 1} ({len(df)} rows × {len(df.columns)} columns)"
           for i, df in enumerate(tables)
         ]
 
         selected = st.selectbox(
-          "Choose Data",
+          "Choose Table",
           range(len(table_names)),
-          format_func=lambda x: table_names[x]
+          format_func=lambda x: table_names[x],
+          key="table_select",
         )
 
         df = tables[selected]
 
-        st.dataframe(df, use_container_width=True)
+        st.dataframe(df, width='stretch')
 
         cols = st.multiselect(
           "Choose Columns",
           df.columns.tolist(),
-          default=df.columns.tolist()
+          default=df.columns.tolist(),
+          key="table_columns",
         )
 
-        filtered = df[cols]
+        if cols:
+          filtered = df[cols]
+          st.dataframe(filtered, width='stretch')
 
-        st.dataframe(filtered, use_container_width=True)
-
-        st.download_button(
-          "Download CSV",
-          filtered.to_csv(index=False).encode(),
-          "Webdata.csv",
-          "text/csv"
-        )
+          st.download_button(
+            "Download CSV",
+            filtered.to_csv(index=False).encode(),
+            "table.csv",
+            "text/csv",
+            key="table_download",
+          )
+        else:
+          st.info("Select at least one column to preview and download.")
 
       else:
-        st.info("No Web data found on this page.")
+        st.info("No Data tables found on this page.")
 
-    
-    # OTHER HTML ELEMENTS
+    # ==========================
+    # OTHER web ELEMENTS
+    # ==========================
+
     if "soup" in st.session_state:
 
       soup = st.session_state.soup
+      base_url = st.session_state.get("base_url", "")
 
-      st.header("Get Other Items")
+      st.header("Get Other Elements")
 
       element = st.selectbox(
-        "Select Other Item",
+        "Select Webpage Element",
         [
           "Links",
           "Images",
           "Paragraphs",
           "Headings",
           "Lists",
-          "Buttons"
-        ]
+          "Buttons",
+        ],
+        key="element_select",
       )
 
       data = []
@@ -2785,17 +3765,19 @@ if st.session_state.started:
       if element == "Links":
 
         for tag in soup.find_all("a"):
+          href = tag.get("href")
           data.append({
             "Text": tag.get_text(strip=True),
-            "URL": tag.get("href")
+            "URL": urljoin(base_url, href) if href else None,
           })
 
       elif element == "Images":
 
         for tag in soup.find_all("img"):
+          src = tag.get("src")
           data.append({
-            "Image": tag.get("src"),
-            "Alt": tag.get("alt")
+            "Image": urljoin(base_url, src) if src else None,
+            "Alt": tag.get("alt"),
           })
 
       elif element == "Paragraphs":
@@ -2809,10 +3791,12 @@ if st.session_state.started:
 
         for level in range(1, 7):
           for tag in soup.find_all(f"h{level}"):
-            data.append({
-              "Heading": tag.get_text(strip=True),
-              "Level": f"Heading {level}"
-            })
+            heading_text = tag.get_text(strip=True)
+            if heading_text:
+              data.append({
+                "Heading": heading_text,
+                "Level": f"H{level}",
+              })
 
       elif element == "Lists":
 
@@ -2824,28 +3808,62 @@ if st.session_state.started:
       elif element == "Buttons":
 
         for tag in soup.find_all("button"):
-          data.append({
-            "Button": tag.get_text(strip=True)
-          })
+          text = tag.get_text(strip=True)
+          if text:
+            data.append({"Button": text})
 
       if len(data):
 
         df = pd.DataFrame(data)
 
-        st.dataframe(df, use_container_width=True)
+        st.dataframe(df, width='stretch')
 
         st.download_button(
           "Download Data",
           df.to_csv(index=False).encode(),
           f"{element.lower()}.csv",
-          "text/csv"
+          "text/csv",
+          key="element_download",
         )
+
+        if element == "Images":
+
+          show_gallery = st.checkbox("Preview images", value=True, key="show_image_gallery")
+
+          if show_gallery:
+
+            valid_images = [row for row in data if row["Image"]]
+
+            if valid_images:
+
+              st.subheader("Image Preview")
+
+              cols_per_row = 4
+              rows = [
+                valid_images[i:i + cols_per_row]
+                for i in range(0, len(valid_images), cols_per_row)
+              ]
+
+              for row_images in rows:
+                cols = st.columns(cols_per_row)
+                for col, img in zip(cols, row_images):
+                  with col:
+                    try:
+                      st.image(
+                        img["Image"],
+                        caption=img["Alt"] or "",
+                        width='stretch',
+                      )
+                    except Exception:
+                      st.caption(f"⚠️ Couldn't load: {img['Image']}")
+            else:
+              st.info("No valid image URLs to preview.")
 
       else:
 
         st.warning(f"No {element.lower()} found.")
 
-  
+
     # Home page 
   elif select_menu == 'About App':
     st.markdown(hide2, unsafe_allow_html=True)
@@ -2894,7 +3912,7 @@ if st.session_state.started:
       '\n---')
       
       st.markdown(
-        '<div style="text-align: justify;">Successfully completed the one-year <b>National Youth Service Corps (NYSC)</b> programme in <b>Bauchi State</b> in year 2022 to 2023, demonstrating exceptional commitment to national service, community development, and professional excellence. Throughout the service year, actively participated in all mandatory phases of the NYSC scheme, including the orientation course, primary assignment, community development service (CDS), and passing-out activities. The NYSC programme is designed to promote national unity, leadership development, self-reliance, and community engagement among Nigerian graduates.<br><a href="https://docs.google.com/document/d/1R5exzsLSe2SGs_Jwp7uCNF8T5_hhkTLwHuJkuKV5X0A/edit?usp=sharing">Read more</a></div>', unsafe_allow_html=True
+        '<div style="text-align: justify;">Successfully completed the one-year <b>National Youth Service Corps (NYSC)</b> programme in <b>Bauchi State</b> in year 2022 to 2023, demonstrating exceptional commitment to national service, community development, and professional excellence. Throughout the service year, actively participated in all mandatory phases of the NYSC scheme, including the orientation course, primary assignment, community development service (CDS), and passing-out activities. The NYSC programme is designed to promote national unity, leadership development, self-reliance, and community engagement among Nigerian graduates.<br><a href="https://github.com/jayplus4/My-portfolio-and-cv/blob/8b4c36b549beab2c821712f939da04d73a78f675/Detailed%20Portfolio.pdf">Read more</a></div>', unsafe_allow_html=True
       )
 
     st.markdown('<hr>', unsafe_allow_html=True)
@@ -2910,7 +3928,7 @@ if st.session_state.started:
       st.markdown(
         '<div style="text-align: justify;">I participated in successfully planned, coordinated, and conducted supportive supervision activities in 20 LGA of</div>', unsafe_allow_html=True
       )
-    st.markdown('<div style="text-align: justify;">Bauchi State in 2024 in the course of working with Pro-health International, ensuring effective implementation of program activities and adherence to established operational standards. Demonstrated strong leadership, technical expertise, and problem-solving skills while providing guidance and mentorship to field personnel, fostering improved performance, accountability, and service delivery.<br><a href="https://docs.google.com/document/d/1R5exzsLSe2SGs_Jwp7uCNF8T5_hhkTLwHuJkuKV5X0A/edit?usp=sharing">Read more</a></div><hr>', unsafe_allow_html=True)
+    st.markdown('<div style="text-align: justify;">Bauchi State in 2024 in the course of working with Pro-health International, ensuring effective implementation of program activities and adherence to established operational standards. Demonstrated strong leadership, technical expertise, and problem-solving skills while providing guidance and mentorship to field personnel, fostering improved performance, accountability, and service delivery.<br><a href="https://github.com/jayplus4/My-portfolio-and-cv/blob/8b4c36b549beab2c821712f939da04d73a78f675/Detailed%20Portfolio.pdf">Read more</a></div><hr>', unsafe_allow_html=True)
 
     col7,col8 = st.columns([4,6])
 
@@ -2922,7 +3940,7 @@ if st.session_state.started:
       '\n---')
       
     st.markdown(
-      '<div style="text-align: justify;">I joined the Strategic Information Team of Pro-health International to conduct comprehensive <b>Data Quality Assessment (DQA)</b> in year 2023, activities to evaluate the accuracy, completeness, consistency, timeliness, and reliability of programme data. Demonstrated strong analytical, monitoring, and evaluation skills in assessing data management systems and ensuring that reported information met established quality standards and reporting requirements.<br><a href="https://docs.google.com/document/d/1R5exzsLSe2SGs_Jwp7uCNF8T5_hhkTLwHuJkuKV5X0A/edit?usp=sharing">Read more</a></div><hr>', unsafe_allow_html=True
+      '<div style="text-align: justify;">I joined the Strategic Information Team of Pro-health International to conduct comprehensive <b>Data Quality Assessment (DQA)</b>in year 2023, activities to evaluate the accuracy, completeness, consistency, timeliness, and reliability of programme data. Demonstrated strong analytical, monitoring, and evaluation skills in assessing data management systems and ensuring that reported information met established quality standards and reporting requirements.<br><a href="https://github.com/jayplus4/My-portfolio-and-cv/blob/8b4c36b549beab2c821712f939da04d73a78f675/Detailed%20Portfolio.pdf">Read more</a></div><hr>', unsafe_allow_html=True
     )
 
     col9,col10 = st.columns([4,6])
@@ -2935,7 +3953,7 @@ if st.session_state.started:
       '\n---')
       
     st.markdown(
-      '<div style="text-align: justify;">I successfully designed, facilitated, and completed a comprehensive <b>Training of Trainers (ToT) on the integration of the Sierra Leone Logistics Management Information System (LMIS) and District Health Information Software 2 (DHIS2) which is called MSUPP</b> ending of year 2025, aimed at strengthening health information management, supply chain visibility, and data-driven decision-making across the health sector, District and National level.<br><a href="https://docs.google.com/document/d/1R5exzsLSe2SGs_Jwp7uCNF8T5_hhkTLwHuJkuKV5X0A/edit?usp=sharing">Read more</a></div><hr>', unsafe_allow_html=True
+      '<div style="text-align: justify;">I successfully designed, facilitated, and completed a comprehensive <b>Training of Trainers (ToT) on the integration of the Sierra Leone Logistics Management Information System (LMIS) and District Health Information Software 2 (DHIS2) which is called MSUPP</b> ending of year 2025, aimed at strengthening health information management, supply chain visibility, and data-driven decision-making across the health sector, District and National level.<br><a href="https://github.com/jayplus4/My-portfolio-and-cv/blob/8b4c36b549beab2c821712f939da04d73a78f675/Detailed%20Portfolio.pdf">Read more</a></div><hr>', unsafe_allow_html=True
     )
 
     col11,col12 = st.columns([3,7])
@@ -2947,7 +3965,7 @@ if st.session_state.started:
       '\n---')
       
     st.markdown(
-      '<div style="text-align: justify;">Successfully led the design, development, configuration, and implementation of a <b>DHIS2-based disease surveillance and monitoring system,</b> to strengthen the tracking, reporting, and management of priority public health diseases, including <b>Meningitis</b> and <b>Mpox (Monkeypox)</b>. The initiative enhanced the capacity of health authorities and implementing partners to monitor disease trends, improve data quality, and support timely public health decision-making.<br><a href="https://docs.google.com/document/d/1R5exzsLSe2SGs_Jwp7uCNF8T5_hhkTLwHuJkuKV5X0A/edit?usp=sharing">Read more</a></div><hr>', unsafe_allow_html=True
+      '<div style="text-align: justify;">Successfully led the design, development, configuration, and implementation of a <b>DHIS2-based disease surveillance and monitoring system,</b> to strengthen the tracking, reporting, and management of priority public health diseases, including <b>Meningitis</b> and <b>Mpox (Monkeypox)</b>. The initiative enhanced the capacity of health authorities and implementing partners to monitor disease trends, improve data quality, and support timely public health decision-making.<br><a href="https://github.com/jayplus4/My-portfolio-and-cv/blob/8b4c36b549beab2c821712f939da04d73a78f675/Detailed%20Portfolio.pdf">Read more</a></div><hr>', unsafe_allow_html=True
     )
 
     col13,col14 = st.columns([3,7])
@@ -2968,7 +3986,7 @@ if st.session_state.started:
         text-align: right;
       }
       </style>
-      <div class="cv"><hr><a href="https://drive.google.com/file/d/19Yxkhqa5amJadMIIypZ2sNRO_KB8W7L3/view?usp=sharing">Detailed Curriculum Vitae (CV)</a></div><hr>
+      <div class="cv"><hr><a href="https://github.com/jayplus4/My-portfolio-and-cv/blob/4406bc180879ace46e6fbd34631a3d13200cc220/Mustapha_Muhammed_upd_Cv%5B1%5D.pdf">Detailed Curriculum Vitae (CV)</a></div><hr>
 
     """
 
