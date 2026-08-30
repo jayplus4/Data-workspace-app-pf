@@ -596,7 +596,7 @@ if st.session_state.started:
       st.sidebar.subheader("📂Upload Excel file to Convert")
       upload_file = st.sidebar.file_uploader("Upload an Excel File", type=['xlsx'])
 
-      st.info('This page support conversion of CSV files to Excel. Do well to upload a CSV file in the sidebar by the left of your screen and see the wonder!.')
+      st.info('This page support conversion of Excel files to CSV. Do well to upload an Excel file in the sidebar by the left of your screen and see the wonder!.')
 
       if upload_file != None:
         st.sidebar.success("✅ File Uploaded Successfully!")
