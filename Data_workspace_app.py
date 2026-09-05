@@ -42,7 +42,7 @@ st.set_page_config(
   layout="centered"
 )
 
-st.write("🌐 Data Workspace")
+st.logo("logo-forweb.jpg")
 
 #CSS Style
 hide= """
