@@ -160,12 +160,14 @@ if st.session_state.started:
       # show dataset
       if st.sidebar.checkbox('Show Dataset'):
         st.markdown(subtitle, unsafe_allow_html=True)
+        st.markdown(subsubtitle, unsafe_allow_html=True)
         st.write(cleaned_df)
         st.write(f"Dataset Rows and Columns:{cleaned_df.shape}")
 
       
       if st.sidebar.checkbox("Check ✅ Delete Row and Column"):
         st.markdown(subtitle, unsafe_allow_html=True)
+        st.markdown(subsubtitle, unsafe_allow_html=True)
         try:
           # st.subheader('Your Dataset')
           # st.write(df1)
@@ -319,11 +321,13 @@ if st.session_state.started:
         st.markdown("<h4 class='subsubtitle'>This page allow you to handle missing values in your dataset, such as checking for missing values and dropping them. you can also replace missing values with manual input or selected column of your dataset Mean. Select option from the sidebar by the left of your device screen to begin.</h4>", unsafe_allow_html=True)
         # check for missing value
         if st.sidebar.checkbox("Check Missing value"):
+          st.markdown(subsubtitle, unsafe_allow_html=True)
           st.subheader("Number of Missing Values")
           st.write(cleaned_df.isna().sum())
           
         # drop the missing value 
         if st.sidebar.button("Click To Drop the Missing Value"):
+          st.markdown(subsubtitle, unsafe_allow_html=True)
           cleaned_df = cleaned_df.dropna()
           with st.spinner("Droping Missing Values,please wait..."):
             time.sleep(10)
@@ -1125,6 +1129,7 @@ if st.session_state.started:
       if st.sidebar.checkbox("Show Dataset"):
         # hide subtitle
         st.markdown(subtitle, unsafe_allow_html=True)
+        st.markdown(subsubtitle, unsafe_allow_html=True)
         st.subheader('Your Dataset')
         st.write(df4)
         st.write(f'**Dateset Rows and Columns: {df4.shape}**')
